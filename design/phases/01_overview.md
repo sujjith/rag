@@ -42,7 +42,7 @@
 | **Web Framework** | FastAPI | Flask, Django, Litestar, Starlette |
 | **Validation** | Pydantic | marshmallow, attrs, dataclasses |
 | **Task Queue** | Celery | Huey, RQ, Dramatiq, TaskTiger |
-| **Message Broker** | Redis | RabbitMQ, Apache Kafka, NATS |
+| **Message Broker** | Apache Kafka | Redis Streams, RabbitMQ, NATS |
 | **Database** | PostgreSQL | MySQL, MariaDB, SQLite |
 | **ORM** | SQLAlchemy | Django ORM, Peewee, SQLModel |
 
@@ -54,9 +54,9 @@
 | **Orchestration** | Kubernetes (K3s) | Docker Swarm, Nomad, OpenShift |
 | **API Gateway** | Kong | APISIX, KrakenD, Tyk, Traefik (with middleware) |
 | **Metrics** | Prometheus | VictoriaMetrics, Thanos, Cortex |
-| **Visualization** | Grafana | Kibana, Chronograf, Netdata |
-| **Logging** | Loki + Promtail | ELK Stack (Elasticsearch + Logstash + Kibana), Fluentd |
-| **Tracing** | Jaeger | Zipkin, SigNoz, Tempo |
+| **Logging** | Loki + Promtail | ELK Stack, Fluentd, Graylog |
+| **Tracing** | Tempo | Jaeger, Zipkin, SigNoz |
+| **Visualization** | Grafana (unified) | Kibana, Chronograf, Netdata |
 | **Load Balancer** | Kong (built-in) | Nginx, HAProxy, Caddy, Envoy |
 
 ### Development & Testing
