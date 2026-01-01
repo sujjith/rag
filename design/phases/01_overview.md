@@ -29,7 +29,8 @@
 | Component | Primary Choice | Open Source Alternatives |
 |-----------|---------------|-------------------------|
 | **Vector Database** | Qdrant | Milvus, Weaviate, ChromaDB, pgvector (PostgreSQL extension) |
-| **Embedding Model** | sentence-transformers | all-MiniLM-L6-v2, BGE, E5, Instructor |
+| **Embedding Model** | sentence-transformers | BAAI/bge-base-en-v1.5, nomic-embed-text-v1.5, E5-large-v2, Instructor |
+| **Reranker** | cross-encoder (sentence-transformers) | BAAI/bge-reranker-base, ColBERTv2, FlashRank |
 | **LLM** | Groq API (cloud) | Ollama (local), llama.cpp, vLLM, OpenAI API |
 | **Document Processing** | PyMuPDF, python-docx | Apache Tika, Pandoc, unstructured.io |
 | **Chunking** | nltk, spacy | LangChain TextSplitter, semantic-chunking |
@@ -51,11 +52,12 @@
 |-----------|---------------|-------------------------|
 | **Container** | Docker | Podman, LXC/LXD |
 | **Orchestration** | Kubernetes (K3s) | Docker Swarm, Nomad, OpenShift |
+| **API Gateway** | Kong | APISIX, KrakenD, Tyk, Traefik (with middleware) |
 | **Metrics** | Prometheus | VictoriaMetrics, Thanos, Cortex |
 | **Visualization** | Grafana | Kibana, Chronograf, Netdata |
 | **Logging** | Loki + Promtail | ELK Stack (Elasticsearch + Logstash + Kibana), Fluentd |
 | **Tracing** | Jaeger | Zipkin, SigNoz, Tempo |
-| **Load Balancer** | Traefik | Nginx, HAProxy, Caddy, Envoy |
+| **Load Balancer** | Kong (built-in) | Nginx, HAProxy, Caddy, Envoy |
 
 ### Development & Testing
 
@@ -87,7 +89,7 @@
 │       ↓                                                            ↓     │
 │   ┌─────────────┐    ┌─────────────┐    ┌─────────────┐    ┌──────────┐│
 │   │   Embed     │ →  │   Search    │ →  │   Rerank    │ →  │ Groq API ││
-│   │   Query     │    │   Qdrant    │    │  (optional) │    │ (Cloud)  ││
+│   │   Query     │    │   Qdrant    │    │ (BGE/ColBERT│    │ (Cloud)  ││
 │   └─────────────┘    └─────────────┘    └─────────────┘    └─────┬────┘│
 │                                                                    │     │
 │                                                                    ↓     │
@@ -232,27 +234,7 @@ class LLMClient:
 
 ---
 
-### Option 1: Ollama (Recommended for Beginners)
-
-```bash
-# Install Ollama
-curl -fsSL https://ollama.com/install.sh | sh
-
-# Pull a model
-ollama pull llama3.2  # 3B parameters, fast
-ollama pull mistral   # 7B parameters, good quality
-ollama pull llama3.1  # 70B parameters, best quality (needs 40GB+ RAM)
-
-# Use in Python
-from ollama import Client
-client = Client()
-response = client.chat(model='llama3.2', messages=[...])
-```
-
-**Pros:** Easy to use, automatic model management
-**Cons:** Slightly less control than llama.cpp
-
-### Option 2: llama.cpp (Maximum Control)
+### Option 4: llama.cpp (Maximum Control)
 
 ```bash
 # Install llama.cpp
@@ -274,7 +256,7 @@ openai.api_base = "http://localhost:8080/v1"
 **Pros:** Maximum performance, GPU acceleration
 **Cons:** More manual setup
 
-### Option 3: vLLM (Production-Grade)
+### Option 5: vLLM (Production-Grade)
 
 ```bash
 # Install vLLM
@@ -337,13 +319,18 @@ curl http://localhost:8000/v1/completions \
 ```
                             ┌─────────────────┐
                             │   Caddy / Nginx │
-                            │  (TLS Termination)
+                            │ (TLS Termination)│
                             └────────┬────────┘
                                      │
                             ┌────────▼────────┐
-                            │   Traefik /     │
-                            │   HAProxy       │
-                            │ (Load Balancer) │
+                            │      Kong       │
+                            │  (API Gateway)  │
+                            │ ┌─────────────┐ │
+                            │ │ • Auth/JWT  │ │
+                            │ │ • Rate Limit│ │
+                            │ │ • Load Bal. │ │
+                            │ │ • Logging   │ │
+                            │ └─────────────┘ │
                             └────────┬────────┘
                                      │
            ┌─────────────────────────┼─────────────────────────┐
@@ -357,17 +344,23 @@ curl http://localhost:8000/v1/completions \
                                      │
            ┌─────────────────────────┼─────────────────────────┐
            │                         │                         │
-           │                         │                         │
   ┌────────▼────────┐     ┌─────────▼────────┐     ┌─────────▼────────┐
   │   PostgreSQL    │     │     Qdrant       │     │   Ollama / vLLM  │
   │   (Metadata)    │     │  (Vector Store)  │     │   (LLM Server)   │
   └─────────────────┘     └──────────────────┘     └──────────────────┘
-           │                         
+           │
   ┌────────▼────────┐     ┌──────────────────┐     ┌──────────────────┐
   │     Redis       │     │  Celery Workers  │     │   Prometheus +   │
   │ (Cache/Sessions)│     │  (Background)    │     │   Grafana        │
   └─────────────────┘     └──────────────────┘     └──────────────────┘
 ```
+
+**Kong provides:**
+- **Authentication**: JWT, API Keys, OAuth2, LDAP
+- **Rate Limiting**: Per-user, per-tenant, per-endpoint
+- **Load Balancing**: Round-robin, consistent-hashing, least-connections
+- **Observability**: Prometheus metrics, logging, tracing
+- **Plugins**: 100+ open source plugins available
 
 ---
 
