@@ -104,47 +104,41 @@ rag-system/
 ├── pyproject.toml           # Project config (uv/poetry)
 ├── .env                     # API keys (GROQ_API_KEY)
 ├── .env.example             # Template for .env
-├── README.md
 │
 ├── src/
 │   └── rag/
-│       ├── __init__.py
+│       ├── __init__.py      # Only one needed (package root)
 │       ├── config.py        # Configuration management
 │       ├── models.py        # Data models (Document, Chunk, etc.)
+│       ├── cli.py           # CLI interface
 │       │
-│       ├── ingestion/
-│       │   ├── __init__.py
+│       ├── ingestion/       # No __init__.py needed (Python 3.3+)
 │       │   ├── loader.py    # Document loaders (PDF, TXT, MD)
 │       │   └── chunker.py   # Text chunking strategies
 │       │
 │       ├── embeddings/
-│       │   ├── __init__.py
 │       │   └── embedder.py  # Embedding generation (BGE)
 │       │
 │       ├── vectorstore/
-│       │   ├── __init__.py
 │       │   └── qdrant.py    # Qdrant integration
 │       │
 │       ├── retrieval/
-│       │   ├── __init__.py
 │       │   ├── search.py    # Vector search
 │       │   └── reranker.py  # Optional reranking
 │       │
-│       ├── llm/
-│       │   ├── __init__.py
-│       │   └── groq.py      # Groq API client
-│       │
-│       └── cli.py           # CLI interface
+│       └── llm/
+│           └── groq.py      # Groq API client
 │
 ├── data/
 │   └── documents/           # Place documents here
 │
 └── tests/
-    ├── __init__.py
     ├── test_chunker.py
     ├── test_embedder.py
     └── test_search.py
 ```
+
+> **Note**: Python 3.3+ supports implicit namespace packages. Only `src/rag/__init__.py` is required to mark the package root.
 
 ---
 
