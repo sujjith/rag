@@ -20,3 +20,7 @@ dependencies = [
     "ruff>=0.14.10",
     "sentence-transformers>=5.2.0",
 ]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]  # Tell pytest where to find the rag module
+testpaths = ["tests"]  # Where to look for tests
