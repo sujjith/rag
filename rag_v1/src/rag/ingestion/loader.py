@@ -1,4 +1,4 @@
-
+# src/rag/ingestion/loader.py
 from pathlib import Path  # Modern way to handle file paths
 import fitz  # PyMuPDF - the package name is 'pymupdf' but import is 'fitz'
 from docx import Document as DocxDocument  # Renamed to avoid conflict with our Document
