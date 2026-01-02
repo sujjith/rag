@@ -100,7 +100,7 @@ This phase focuses on building the core RAG pipeline with minimal dependencies. 
 ## Project Structure
 
 ```
-rag-system/
+rag_v1/
 ├── pyproject.toml           # Project config (uv/poetry)
 ├── .env                     # API keys (GROQ_API_KEY)
 ├── .env.example             # Template for .env
