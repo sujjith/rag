@@ -63,7 +63,8 @@ class TestDocumentLoader:  # Group all loader tests in a class
         assert doc.metadata["type"] == ".md"
 
     def test_load_pdf_extracts_text(self):  # Test PDF loading with real file
-        pdf_path = Path("/home/sujith/github-sujith/rag/rag_v1/data/documents/macbeth.pdf")
+        # Use project-relative path that works on any machine
+        pdf_path = Path(__file__).parent.parent / "data" / "documents" / "macbeth.pdf"
         
         doc = loader.load(pdf_path)  # Load the PDF
         
