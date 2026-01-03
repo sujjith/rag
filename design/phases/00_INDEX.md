@@ -7,7 +7,7 @@
 **New to RAG?** Follow this order:
 
 1. **[Overview](01_overview.md)** - Understanding RAG (15 min read)
-2. **[Quick Start](02_quick_start.md)** - Get RAG running in 30 minutes
+
 3. **[Phase 1: MVP](03_phase_01_mvp.md)** - Build basic RAG (Week 1-4)
 4. **[Phase 2: API](04_phase_02_api.md)** - Add FastAPI + tests (Week 5-8)
 5. **[Phase 3: Enterprise](05_phase_03_enterprise.md)** - Production features (Month 3-4)
