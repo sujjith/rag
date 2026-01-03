@@ -31,7 +31,7 @@ Shows:
 
 ### Single file:
 ```bash
-uv run rag ingest data/documents/macbeth.pdf
+uv run rag ingest data/documents/romeo_juliet.pdf
 uv run rag ingest /path/to/your/document.txt
 ```
 
