@@ -2,7 +2,7 @@
 import re  # Regular expressions for splitting text
 from typing import Generator  # Type hint for functions that yield values
 from rag.models import Document, Chunk  # Import our data models
-import hashlib  # For generating unique chunk IDs
+import uuid  # For generating UU IDs (Qdrant-compatible)
 
 class SentenceChunker:  # Splits documents into smaller chunks by sentence boundaries
 
@@ -24,7 +24,7 @@ class SentenceChunker:  # Splits documents into smaller chunks by sentence bound
             if current_length + sentence_len > self.chunk_size and current_chunk:  # If adding sentence exceeds limit
                 # Yield current chunk
                 chunk_text = " ".join(current_chunk)  # Combine sentences into chunk text
-                chunk_id = hashlib.md5(f"{document.id}:{start_char}".encode()).hexdigest()[:12]  # Generate unique ID
+                chunk_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{document.id}:{start_char}"))  # Generate UUID from document ID + position
 
                 yield Chunk(  # Yield = return one chunk, then continue (generator pattern)
                     id=chunk_id,
@@ -45,7 +45,7 @@ class SentenceChunker:  # Splits documents into smaller chunks by sentence bound
 
         if current_chunk:  # Handle any remaining sentences after loop ends
             chunk_text = " ".join(current_chunk)  # Combine remaining sentences
-            chunk_id = hashlib.md5(f"{document.id}:{start_char}".encode()).hexdigest()[:12]  # Generate ID for final chunk
+            chunk_id = str(uuid.uuid5(uuid.NAMESPACE_DNS, f"{document.id}:{start_char}"))  # Generate UUID for final chunk
 
             yield Chunk(  # Yield the final chunk
                 id=chunk_id,

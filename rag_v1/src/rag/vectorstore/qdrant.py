@@ -71,17 +71,18 @@ class QdrantStore:
                 )]
             )
 
-        results = self.client.search(  # Search for similar vectors in the database
+        results = self.client.query_points(  # Query for similar vectors using the new Qdrant API
             collection_name=self.collection_name,  # Which collection to search in
-            query_vector=query_vector,  # The vector we're comparing against (the user's question)
+            query=query_vector,  # The vector we're comparing against (the user's question)
             limit=top_k,  # Maximum number of results to return
-            query_filter=search_filter  # Apply the filter if one was specified (or None)
-        )
+            query_filter=search_filter,  # Apply the filter if one was specified (or None)
+            with_payload=True,  # Include the stored payload data in results
+        ).points  # Extract the points from the response
 
         chunks = []  # Create an empty list to store our results
         for result in results:  # Loop through each search result from Qdrant
             chunk = Chunk(  # Reconstruct a Chunk object from the stored data
-                id=result.id,  # The chunk's unique ID
+                id=str(result.id),  # The chunk's unique ID (convert to string)
                 document_id=result.payload["document_id"],  # Extract document_id from the stored payload
                 content=result.payload["content"],  # Extract the text content
                 metadata=result.payload["metadata"],  # Extract the metadata
