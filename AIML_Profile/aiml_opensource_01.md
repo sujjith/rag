@@ -389,6 +389,145 @@
 
 ---
 
+## 22. AI Agents & Multi-Agent Frameworks
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **AutoGen** | Microsoft's agent framework | `uv add pyautogen` |
+| **CrewAI** | Orchestrate role-playing agents | `uv add crewai` |
+| **LangGraph** | Stateful agent orchestration | `uv add langgraph` |
+| **Open Interpreter** | Run code locally via LLM | `uv add open-interpreter` |
+| **MetaGPT** | Multi-agent collaboration | `uv add metagpt` |
+| **ChatDev** | Virtual software company | Clone repo |
+
+### Hands-on Tasks
+- [ ] Build a multi-agent chat with AutoGen
+- [ ] Create a research team with CrewAI
+- [ ] Build a stateful agent with LangGraph
+
+---
+
+## 23. Data Governance & Cataloging
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **DataHub** | Metadata platform | Docker |
+| **Amundsen** | Lyft's data discovery | Docker |
+| **Apache Atlas** | Metadata management | Docker |
+| **OpenMetadata** | Standardized metadata | Docker |
+| **Marquez** | Data lineage (OpenLineage) | Docker |
+
+### Hands-on Tasks
+- [ ] Set up DataHub with Docker
+- [ ] Ingest metadata from Postgres
+- [ ] Visualize data lineage
+
+---
+
+## 24. Graph RAG & Knowledge Graphs
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **Neo4j** | Graph database | Docker (`neo4j`) |
+| **NebulaGraph** | Distributed graph DB | Docker |
+| **NetworkX** | Graph analysis library | `uv add networkx` |
+| **Memgraph** | In-memory graph DB | Docker |
+| **FalkorDB** | Low-latency graph DB | Docker |
+
+### Hands-on Tasks
+- [ ] Spin up Neo4j for Graph RAG
+- [ ] Visualize relationships with NetworkX
+- [ ] Store knowledge graph in Memgraph
+
+---
+
+## 25. Synthetic Data Generation
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **SDV** | Synthetic Data Vault | `uv add sdv` |
+| **Faker** | Fake data generator | `uv add faker` |
+| **Gretel Synthetics** | Privacy-preserving data | `uv add gretel-synthetics` |
+| **Mimesis** | High-performance fake data | `uv add mimesis` |
+
+### Hands-on Tasks
+- [ ] Generate tabular data with SDV
+- [ ] Create fake user profiles with Faker
+- [ ] Train model on synthetic data
+
+---
+
+## 26. Federated Learning & Privacy
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **Flower (Flwr)** | Federated learning framework | `uv add flwr` |
+| **PySyft** | Privacy-preserving ML | `uv add syft` |
+| **OpenFL** | Intel's federated learning | `uv add openfl` |
+| **TensorFlow Federated** | TFF framework | `uv add tensorflow-federated` |
+| **Opacus** | Differential privacy (PyTorch) | `uv add opacus` |
+
+### Hands-on Tasks
+- [ ] Simluated federated learning with Flower
+- [ ] Train with differential privacy using Opacus
+
+---
+
+## 27. Notebooks & Dev Environments
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **Jupyter Notebook** | Interactive computing | `uv add notebook` |
+| **JupyterLab** | Next-gen Jupyter UI | `uv add jupyterlab` |
+| **JupyterHub** | Multi-user Jupyter | Docker |
+| **Marimo** | Reactive Python notebooks | `uv add marimo` |
+| **Papermill** | Parameterize & execute notebooks | `uv add papermill` |
+| **nbdev** | Develop libraries in notebooks | `uv add nbdev` |
+| **VS Code Jupyter** | Jupyter in VS Code | VS Code extension |
+
+### Hands-on Tasks
+- [ ] Set up JupyterLab locally
+- [ ] Parameterize notebooks with Papermill
+- [ ] Try reactive notebooks with Marimo
+
+---
+
+## 28. Edge ML / TinyML
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **TensorFlow Lite** | Mobile/embedded ML | `uv add tflite-runtime` |
+| **ONNX Runtime Mobile** | Cross-platform edge inference | `uv add onnxruntime` |
+| **Apache TVM** | Deep learning compiler | `uv add apache-tvm` |
+| **microTVM** | TVM for microcontrollers | TVM project |
+| **Edge Impulse** | End-to-end edge ML | Web platform |
+| **ExecuTorch** | PyTorch for edge | `uv add executorch` |
+
+### Hands-on Tasks
+- [ ] Convert model to TensorFlow Lite
+- [ ] Run inference with ONNX Runtime
+- [ ] Optimize model with TVM
+
+---
+
+## 29. ML Documentation
+
+| Tool | Description | Try It |
+|------|-------------|--------|
+| **MkDocs** | Project documentation | `uv add mkdocs` |
+| **MkDocs Material** | Beautiful MkDocs theme | `uv add mkdocs-material` |
+| **Sphinx** | Python documentation | `uv add sphinx` |
+| **Model Cards Toolkit** | ML model documentation | `uv add model-card-toolkit` |
+| **Docusaurus** | Facebook's doc framework | `npx create-docusaurus` |
+| **pdoc** | Auto-generate Python docs | `uv add pdoc` |
+
+### Hands-on Tasks
+- [ ] Document ML project with MkDocs
+- [ ] Create model card for your model
+- [ ] Generate API docs with pdoc
+
+---
+
 ## Quick Start: Recommended Learning Path
 
 ### Week 1-2: Foundations
