@@ -1,0 +1,42 @@
+services:
+  qdrant:
+    image: qdrant/qdrant:latest # Use the latest Qdrant image from Docker Hub
+    container_name: rag-qdrant # Container name specific to this RAG project
+    restart: unless-stopped # Automatically restart unless manually stopped
+
+    # Ports
+    ports:
+      - "6335:6333" # REST API - mapped to host port 6335 to avoid conflict with existing Qdrant
+      - "6336:6334" # gRPC API - mapped to host port 6336
+
+    # Persistent storage
+    volumes:
+      - qdrant-data:/qdrant/storage # Store vector data persistently on disk
+
+    # Environment variables
+    environment:
+      # Service configuration
+      - QDRANT__SERVICE__GRPC_PORT=6334 # gRPC port
+      - QDRANT__SERVICE__HTTP_PORT=6333 # HTTP REST API port
+      # Disable telemetry for privacy
+      - QDRANT__TELEMETRY_DISABLED=true # Don't send usage data to Qdrant
+      # Log level: INFO, DEBUG, WARN, ERROR
+      - QDRANT__LOG_LEVEL=INFO # Use INFO for normal operation, DEBUG for troubleshooting
+
+    # Note: Healthcheck removed because Qdrant container doesn't include wget or curl
+    # The service is working fine - you can verify manually with: curl http://localhost:6335/healthz
+
+    # Resource limits (adjust based on your machine)
+    deploy:
+      resources:
+        limits:
+          cpus: '2.0' # Maximum 2 CPU cores
+          memory: 4G # Maximum 4GB RAM
+        reservations:
+          cpus: '1.0' # Reserve at least 1 CPU core
+          memory: 2G # Reserve at least 2GB RAM
+
+# Volumes - persistent storage for vector data
+volumes:
+  qdrant-data:
+    driver: local # Store data locally on the host machine

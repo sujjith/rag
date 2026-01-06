@@ -1,0 +1,212 @@
+Q & E
+
+	1. Proficiency in Python  other relevant ML libraries.
+		1. scikit-learn, TensorFlow, PyTorch, Keras
+		2. Scala
+		3. Kubeflow
+		4. Kotlin
+		5. LGBM
+		6.  Kserve
+		7. RayServe
+		8. TrustyAI
+		9. Hugging Face
+		10. Hugging Face Transformers
+		11. popular Python ML libraries
+		12. kafka
+		13. MLlib,
+		14.  XGBoost, 
+		15. Sklearn
+		16. no-code platforms like Zapier
+		17. Exposure to Big Data systems such as Snowflake, and Hadoop
+		18. programming language like R, or Rust. 
+		19. pyMC, 
+		20. Pgmpy
+		21. PySpark
+		22. Model training tools (Ray
+		23. Retrieval-Augmented Generation (RAG)
+		24. vLLM
+		25. Staying up-to-date with SOTA and industry trends in AI/ML
+		26.  Domino Data Lab
+		27. data-related tools (Oracle, Redshift, PostgreSQL, CDP Impala, Athena).
+		28. JAX
+		29. FastAPI
+		30. DVC
+		31. dbt, Snowflake, Sigma
+		32. Rust, Julia.
+		33. MVT
+		34. ACDC
+		35. Action Factory – Automated decision-making platform.
+		36. Echo – MLOps pipeline management tool.
+		37. vLLm, LiteLLM, TensorRT-LLM
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+	2. Tools like Amazon SageMaker for model development
+	3. Proficiency in data pipeline tools and frameworks such as AWS Glue, Amazon Kinesis, AWS Step Functions, or similar.
+	4. AWS Glue for ETL jobs, Amazon Kinesis for real-time data streaming, and AWS Step Functions to coordinate workflows.
+	5. Experience with big data technologies (e.g., Apache Spark, Hadoop, hudi, )
+	6. Hands-on experience with cloud platforms such as AWS, Azure, or Google Cloud for ML deployment.
+	7. Strong understanding of CI/CD pipelines, containerisation (Docker, Kubernetes), and orchestration tools.
+	8. Experience with monitoring tools like Datadog, Grafana, or similar to track model performance.
+	9. Knowledge of infrastructure-as-code tools like Terraform or CloudFormation.
+	10. Experience with version control (Git) and workflow automation.
+	11. Familiarity with distributed data systems like Spark, Hadoop, or Kubernetes.
+	12. Experience with MLOps practices and tools (e.g., MLflow, Kubeflow, or similar)
+	13. Hands-on experience of working in the robotics domain, with fixed-arm robots, autonomous mobile robots, etc.
+	14. Kubeflow, an open-source solution that enables efficient machine learning workflows.
+	15. Experience with MPP frameworks like Spark, Ray, Dask
+	16. Experience with Orchestration platforms such as KubeFlow & Airflow
+	17. Experience with model life cycle management tools like MLFlow and Weights & Biases
+	18. solving NLP tasks
+	19. Experienced in Computer Vision, NLP/LLM, and ML engineering
+	20. Conduct end-to-end analyses, wrangling data via SQL or Python, to statistical modeling, to hypothesizing and presenting business ideas.
+	21. large language model operations (LLMOps)
+	22. Automate business processes using microservices and no-code platforms like Zapier
+	23. Vector Database Integration: Set up and maintain vector databases to support natural language processing (NLP) models, ensuring efficient and accurate text-based data retrieval and analysis. Amazon OpenSearch Service and Amazon DynamoDB can be leveraged for indexing and storing large volumes of vectorized data.
+	24. cutting-edge industry tools such as neural networks (NNs), large language models (LLMs), and traditional ML methods like XGBoost or linear models
+	25. Experience with monitoring tools like Datadog, Grafana, or similar to track model performance.
+	26. Implementing data management concepts (Metadata Management, Data Quality, Data Testing) 
+	27. Manage and optimize SLURM clusters in cloud environments, addressing high-performance and HPC orchestration requirements.
+	28. Knowledge of other HPC cluster managers (e.g., Slurm++, Grid Engine).
+	29. Data Pipeline Development: Design and build ETL/ELT data pipelines using BigQuery and other GCP services to ingest, process, and transform large datasets from multiple sources.
+	30. Deep understanding of data warehousing concepts, dimensional modeling, and building data marts.
+	31. Experience with ETL/ELT tools like Apache Beam, Dataflow, or dbt.
+	32. the enterprise adoption of Ubuntu, Kubeflow, MLFlow, Feast, DVC and related analytics, machine learning and data technologies
+	33. Google Cloud Platform (GCP) technologies, including BigQuery, VertexAI, and AutoML tools.
+	34. ML inference optimization techniques, such as quantization, PEFT, DeepSpeed, ONNX, TensorRT
+	35. Deep experience building with Hugging Face Technologies, including Transformers, Diffusers, Accelerate, PEFT, Datasets
+	36. Design operating models that leverage AI - incl. Cortex)
+	37. Boosting libraries → xgboost, lightgbm, catboost
+	38. Deep learning → tensorflow, pytorch
+	39. NLP → nltk, spacy, transformers
+	40. Time series → statsmodels, prophet
+	41. MVT – Multi-variate testing platform.
+	42. ACDC – Cloud-based ML deployment tool.
+	43. Action Factory – Automated decision-making platform.
+	44. Echo – MLOps pipeline management tool.
+	
+	
+	
+	
+	
+	
+	
+	
+	
+
+
+
+
+
+Req
+
+Model Training
+
+	1. Design, implement, and maintain machine learning pipelines for model training, validation, and deployment.
+	2. Automate end-to-end model lifecycle management, including data preprocessing, model training, testing, monitoring, and updates.
+	3. build scalable, resilient, and secure infrastructure for ML models in production.
+	4. Knowledge of feature store management and model registry systems.
+	5. Perform data engineering and exploratory data analysis to extract meaningful insights
+	6. analyze and select features to optimize model performance.
+	7.  Explore and select appropriate tools and models for each problem, including using deep learning, LLMs, Transformers, NLP, and ML models.
+	8. Advanced Analytics: Leverage statistical and machine learning methods to produce actionable insights that directly drive strategic business decisions.
+	9. MLOps, LLM Guardrails, Explainable AI, Fairness, and Bias domains, contributing to the development of a vibrant open-source ecosystem for Open Data Hub and OpenShift AI.
+	10. design and integration of model fairness and bias metrics, as well as explainable AI algorithms, within the OpenShift AI product suite.
+	11. Develop groundbreaking Computer Vision and NLP solutions to revolutionize the Medtech Industry.
+	12. Conduct end-to-end analyses, wrangling data via SQL or Python, to statistical modeling, to hypothesizing and presenting business ideas.
+	13. Develop, implement, and optimize machine learning algorithms and models, including LLMs, for a variety of applications.
+	14. Train and fine-tune LLMs (e.g., LLaMA, Gemma) using frameworks such as DeepSpeed and Accelerate, incorporating techniques like LoRA, QLoRA, and quantization.
+	15. Apply reinforcement learning techniques (e.g., PPO, DPO) to improve model performance.
+	16. Knowledge of model optimization techniques (e.g., gradient accumulation, learning rate schedules).
+	17. Experience with LLM and RAG evaluation using Langsmith. 
+	18. Experience with LangGraph framework and agents in general. 
+	19. techniques like LoRA, QLoRA, and quantization
+	20. reinforcement learning techniques (e.g., PPO, DPO) to improve model performance.
+	21. Evaluate models using benchmarks such as MMLU, ACVA, MGSM, and ZeroSCROLLS, with an emphasis on domain-specific datasets and multilingual capabilities
+	22. model optimization techniques (e.g., gradient accumulation, learning rate schedules)
+	23. Model Development and Deployment: Design, build, and deploy AI models for critical areas like fraud prevention, risk scoring, and segmentation.
+	24. - AI Agent Innovation: Lead the development of AI agents that leverage data to deliver predictive analytics and proactive solutions.
+	25. Experience with Probabilistic Graphical Modelling (Bayesian Networks, Markov Random Fields, Factor Graphs, ...)
+	26. Strong knowledge of machine learning and neural network architectures, including Ensemble Models, SVM, CNN, RNN, and Transformers.
+	27. Expertise in Natural Language Processing tools like NLTK, SpaCy, Hugging Face, and Gensim.
+	28. Knowledge of machine learning algorithms and concepts (e.g., supervised learning, unsupervised learning, deep learning) as applied to generative AI. 
+	29. Experience with GPU cluster management and scheduling (e.g., Slurm, NVIDIA AI Enterprise, MIG)
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+Data-Pipeline
+
+	1. Maintain and improve data pipelines, ensuring data quality, availability, and integrity
+	2. Implement and optimize data processing pipelines
+	3. Preprocess, curate, and manage large datasets, ensuring quality for training and evaluation purposes.
+
+CICD
+
+	1. Ensure CI/CD practices for model deployment
+	2. Develop and maintain CI/CD pipelines for ML model deployment
+	
+AIML OPS
+
+	1. Monitor model performance, identify bottlenecks, and implement improvements to maintain optimal results.
+	2. Develop tools and frameworks for the rapid deployment and iteration of machine learning models.
+	3. Optimise resource usage and cost by ensuring efficient model inference and serving architectures.
+	4. Experience with A/B testing and model validation techniques
+	5. Design and implement monitoring and alerting systems for ML model performance
+	6. Ensure scalability, reliability, and efficiency of ML systems in production
+	7. Contribute to the development of internal MLOps tools and libraries
+	8. Model Versioning and Experiment Tracking Establish frameworks for versioning ML models and tracking experiment results, enabling reproducibility and collaboration among data scientists and ML engineers.
+	9. Vector Database Integration: 
+		a. Set up and maintain vector databases to support natural language processing (NLP) models, ensuring efficient and accurate text-based data retrieval and analysis. 
+		b. Amazon OpenSearch Service and Amazon DynamoDB can be leveraged for indexing and storing large volumes of vectorized data.
+		c. third-party vector databases like Pinecone, Weaviate, or FAISS).
+	10. Document Indexing System: Design and implement a system for document ingestion and indexing, providing seamless access to data for downstream ML and analytics processes. 
+	11. Data Enrichment: Lead the collection and integration of new data sources in alignment with the Data department’s strategic goals, enhancing insight quality and model performance.
+	12. Understanding of ML Projects lifecycle 
+	13. Experience with MLOps platforms, such as Kubeflow or MLFlow 
+	14. Conduct research and design innovative features for open-source MLOps communities, including KServe and TrustyAI, to enhance their capabilities and impact.
+	15. Familiarity with ETL processes and data pipeline orchestration
+	16. Experience with any pipeline orchestration tool (Airflow, Kubeflow, Argo workflows etc)
+	17. Collaborate closely with the SpecialOps team to identify AI-driven solutions and integrate them into business workflows
+	18. Evaluate models using benchmarks such as MMLU, ACVA, MGSM, and ZeroSCROLLS, with an emphasis on domain-specific datasets and multilingual capabilities (including Arabic).
+	19.  Familiarity with MLOps tools like ClearML, MLflow, and Weights & Biases for model tracking and versioning.
+	20. design and implementation of data artefacts, including data modelling, data integration, data storage, and data governance based on industry best practices
+	21. API Development and Integration: Develop and integrate APIs using frameworks like FastAPI, Django, or Flask to facilitate AI functionalities within larger systems. 
+	22. ClearML, MLflow, and Weights & Biases for model tracking and versioning.
+	23. Data Pipeline Development: Design and build ETL/ELT data pipelines using BigQuery and other GCP services to ingest, process, and transform large datasets from multiple sources.
+	24. Deep understanding of data warehousing concepts, dimensional modeling, and building data marts.
+	25. Experience with ETL/ELT tools like Apache Beam, Dataflow, or dbt.
+	26. Automation & Monitoring: Automate workflows using Cloud Composer, Cloud Functions, or other orchestration tools to ensure reliable and scalable data pipelines.
+	27. Productionize and automate model pipelines within Python services.
+	
+	
+	
+	
+	
+Others
+
+	1. Collaborate with cross-functional teams to understand business needs and translate them into actionable ML solutions.
+	2. Collaborate with data scientists to productionize ML models efficiently
+	3. Conduct Code Review
+	4. A Masters or PhD in Data Science or similar discipline
+	5. Professional Python or Golang experience
+	6. Staying up-to-date with SOTA and industry trends in AI/ML
+	7. ou have experience with our stack: Python, LlamaIndex / LangChain, PyTorch, HuggingFace, FastAPI, Postgres, SQLAlchemy, Alembic, OpenAI, Docker, Azure, Typescript, React.
+	
+
