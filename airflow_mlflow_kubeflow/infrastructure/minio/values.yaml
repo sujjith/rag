@@ -1,0 +1,67 @@
+# MinIO Helm values
+mode: distributed
+
+replicas: 4
+
+persistence:
+  enabled: true
+  size: 100Gi
+  storageClass: "standard"
+
+resources:
+  requests:
+    memory: 2Gi
+    cpu: 500m
+  limits:
+    memory: 4Gi
+    cpu: 2
+
+rootUser: minio
+rootPassword: minio123
+
+buckets:
+  - name: mlflow
+    policy: none
+    purge: false
+  - name: airflow-logs
+    policy: none
+    purge: false
+  - name: kubeflow-pipelines
+    policy: none
+    purge: false
+  - name: feast
+    policy: none
+    purge: false
+  - name: datasets
+    policy: none
+    purge: false
+  - name: models
+    policy: none
+    purge: false
+
+users:
+  - accessKey: mlflow
+    secretKey: mlflow123
+    policy: readwrite
+  - accessKey: airflow
+    secretKey: airflow123
+    policy: readwrite
+  - accessKey: kubeflow
+    secretKey: kubeflow123
+    policy: readwrite
+
+ingress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - minio.local
+
+consoleIngress:
+  enabled: true
+  ingressClassName: nginx
+  hosts:
+    - minio-console.local
+
+metrics:
+  serviceMonitor:
+    enabled: false

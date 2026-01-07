@@ -1,0 +1,44 @@
+# PostgreSQL Helm values for MLOps
+global:
+  postgresql:
+    auth:
+      postgresPassword: "postgres123"
+      database: "mlops"
+
+primary:
+  persistence:
+    enabled: true
+    size: 50Gi
+    storageClass: "standard"
+  resources:
+    requests:
+      memory: "2Gi"
+      cpu: "1"
+    limits:
+      memory: "4Gi"
+      cpu: "2"
+
+  initdb:
+    scripts:
+      init.sql: |
+        CREATE DATABASE airflow;
+        CREATE DATABASE mlflow;
+        CREATE DATABASE feast;
+        CREATE USER airflow WITH PASSWORD 'airflow123';
+        CREATE USER mlflow WITH PASSWORD 'mlflow123';
+        CREATE USER feast WITH PASSWORD 'feast123';
+        GRANT ALL PRIVILEGES ON DATABASE airflow TO airflow;
+        GRANT ALL PRIVILEGES ON DATABASE mlflow TO mlflow;
+        GRANT ALL PRIVILEGES ON DATABASE feast TO feast;
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false
+
+backup:
+  enabled: true
+  cronjob:
+    schedule: "0 2 * * *"
+    storage:
+      size: 20Gi
