@@ -1,8 +1,8 @@
-# Phase 05: Feature Store & Data Validation
+# Phase 05: Feature Store, Data Validation & Data Versioning
 
 ## Overview
 
-Setup Feast feature store for feature management and Great Expectations for data validation in the ML pipeline.
+Setup Feast feature store for feature management, Great Expectations for data validation, and DVC for data/model versioning in the ML pipeline.
 
 ---
 
@@ -921,13 +921,574 @@ with DAG(
 
 ---
 
+## Step 6: DVC (Data Version Control)
+
+### DVC Architecture
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│                          DVC DATA VERSIONING                                 │
+├─────────────────────────────────────────────────────────────────────────────┤
+│                                                                              │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                         GIT REPOSITORY                               │   │
+│   │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │   │
+│   │   │   Code      │  │  .dvc files │  │  dvc.yaml   │                │   │
+│   │   │  (tracked)  │  │ (pointers)  │  │ (pipelines) │                │   │
+│   │   └─────────────┘  └─────────────┘  └─────────────┘                │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                     │                                        │
+│                                     │ dvc push/pull                          │
+│                                     ▼                                        │
+│   ┌─────────────────────────────────────────────────────────────────────┐   │
+│   │                      REMOTE STORAGE                                  │   │
+│   │   ┌─────────────┐  ┌─────────────┐  ┌─────────────┐                │   │
+│   │   │    S3 /     │  │   Models    │  │  Pipeline   │                │   │
+│   │   │   MinIO     │  │  Artifacts  │  │   Outputs   │                │   │
+│   │   │  (datasets) │  │             │  │             │                │   │
+│   │   └─────────────┘  └─────────────┘  └─────────────┘                │   │
+│   └─────────────────────────────────────────────────────────────────────┘   │
+│                                                                              │
+│   Key Features:                                                              │
+│   • Version large files without bloating Git                                │
+│   • Reproduce ML pipelines with exact data versions                         │
+│   • Share data across teams via remote storage                              │
+│   • Track experiments with data + code + metrics                            │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+### Install and Initialize DVC
+
+```bash
+# Install DVC with S3 support
+pip install 'dvc[s3]'
+
+# Or with all remotes
+pip install 'dvc[all]'
+
+# Initialize DVC in your project
+cd mlops-project
+dvc init
+
+# Configure remote storage (MinIO/S3)
+dvc remote add -d minio s3://dvc-storage
+dvc remote modify minio endpointurl http://minio.mlflow.svc.cluster.local:9000
+dvc remote modify minio access_key_id minio
+dvc remote modify minio secret_access_key minio123
+
+# Verify configuration
+cat .dvc/config
+```
+
+### Project Structure with DVC
+
+```
+mlops-project/
+├── .dvc/
+│   ├── config              # DVC configuration
+│   └── .gitignore
+├── .dvcignore              # Files to ignore
+├── data/
+│   ├── raw/
+│   │   └── customers.csv.dvc    # Pointer to versioned data
+│   ├── processed/
+│   │   └── features.parquet.dvc
+│   └── .gitignore
+├── models/
+│   └── churn_model.pkl.dvc      # Pointer to versioned model
+├── dvc.yaml                # Pipeline definition
+├── dvc.lock                # Pipeline state (auto-generated)
+├── params.yaml             # Pipeline parameters
+└── src/
+    ├── preprocess.py
+    ├── train.py
+    └── evaluate.py
+```
+
+### Track Data with DVC
+
+```bash
+# Add large data files to DVC tracking
+dvc add data/raw/customers.csv
+dvc add data/raw/transactions.csv
+
+# This creates:
+# - data/raw/customers.csv.dvc (pointer file - commit to Git)
+# - data/raw/.gitignore (auto-generated)
+
+# Commit the .dvc files to Git
+git add data/raw/customers.csv.dvc data/raw/.gitignore
+git commit -m "Track customer data with DVC"
+
+# Push data to remote storage
+dvc push
+```
+
+### Track Models with DVC
+
+```bash
+# After training, track the model
+dvc add models/churn_model.pkl
+
+# Also track model metrics
+dvc add models/metrics.json
+
+# Commit to Git
+git add models/churn_model.pkl.dvc models/metrics.json.dvc
+git commit -m "Add trained churn model v1.0"
+
+# Push to remote
+dvc push
+```
+
+### DVC Pipelines
+
+Create `dvc.yaml`:
+
+```yaml
+stages:
+  preprocess:
+    cmd: python src/preprocess.py
+    deps:
+      - src/preprocess.py
+      - data/raw/customers.csv
+      - data/raw/transactions.csv
+    params:
+      - preprocess.test_size
+      - preprocess.random_state
+    outs:
+      - data/processed/train.parquet
+      - data/processed/test.parquet
+    plots:
+      - data/processed/data_stats.json:
+          x: feature
+          y: missing_pct
+
+  train:
+    cmd: python src/train.py
+    deps:
+      - src/train.py
+      - data/processed/train.parquet
+    params:
+      - train.n_estimators
+      - train.max_depth
+      - train.learning_rate
+    outs:
+      - models/churn_model.pkl
+    metrics:
+      - models/metrics.json:
+          cache: false
+    plots:
+      - models/confusion_matrix.csv:
+          template: confusion
+          x: predicted
+          y: actual
+
+  evaluate:
+    cmd: python src/evaluate.py
+    deps:
+      - src/evaluate.py
+      - models/churn_model.pkl
+      - data/processed/test.parquet
+    metrics:
+      - models/eval_metrics.json:
+          cache: false
+    plots:
+      - models/roc_curve.csv:
+          x: fpr
+          y: tpr
+      - models/precision_recall.csv:
+          x: recall
+          y: precision
+```
+
+Create `params.yaml`:
+
+```yaml
+preprocess:
+  test_size: 0.2
+  random_state: 42
+
+train:
+  n_estimators: 100
+  max_depth: 10
+  learning_rate: 0.1
+```
+
+### Run DVC Pipeline
+
+```bash
+# Run entire pipeline
+dvc repro
+
+# Run specific stage
+dvc repro train
+
+# Force re-run all stages
+dvc repro --force
+
+# View pipeline DAG
+dvc dag
+```
+
+### DVC Experiments
+
+```bash
+# Run experiment with different parameters
+dvc exp run --set-param train.n_estimators=200
+
+# Run multiple experiments in queue
+dvc exp run --queue --set-param train.n_estimators=100
+dvc exp run --queue --set-param train.n_estimators=150
+dvc exp run --queue --set-param train.n_estimators=200
+dvc exp run --run-all
+
+# Compare experiments
+dvc exp show
+
+# Show experiment diff
+dvc exp diff
+
+# Apply best experiment to workspace
+dvc exp apply exp-abc123
+
+# Push experiment to Git branch
+dvc exp push origin exp-abc123
+```
+
+### DVC with MLflow Integration
+
+Create `src/train.py`:
+
+```python
+#!/usr/bin/env python
+import yaml
+import json
+import pickle
+import pandas as pd
+import mlflow
+import mlflow.sklearn
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import dvc.api
+
+# Load parameters
+with open("params.yaml") as f:
+    params = yaml.safe_load(f)["train"]
+
+# Load data using DVC API
+train_path = "data/processed/train.parquet"
+
+# Get data version info
+data_version = dvc.api.get_url(train_path)
+
+# Load data
+df = pd.read_parquet(train_path)
+X = df.drop("target", axis=1)
+y = df["target"]
+
+# Configure MLflow
+mlflow.set_tracking_uri("http://mlflow.local:5000")
+mlflow.set_experiment("dvc-tracked-experiments")
+
+with mlflow.start_run():
+    # Log DVC data version
+    mlflow.set_tag("dvc.data_version", data_version)
+    mlflow.set_tag("dvc.repo", dvc.api.get_url("."))
+
+    # Log parameters
+    mlflow.log_params(params)
+
+    # Train model
+    model = RandomForestClassifier(
+        n_estimators=params["n_estimators"],
+        max_depth=params["max_depth"],
+        random_state=42
+    )
+    model.fit(X, y)
+
+    # Evaluate
+    y_pred = model.predict(X)
+    metrics = {
+        "accuracy": accuracy_score(y, y_pred),
+        "precision": precision_score(y, y_pred, average="weighted"),
+        "recall": recall_score(y, y_pred, average="weighted"),
+        "f1_score": f1_score(y, y_pred, average="weighted")
+    }
+
+    # Log metrics to MLflow
+    mlflow.log_metrics(metrics)
+
+    # Log model to MLflow
+    mlflow.sklearn.log_model(model, "model")
+
+    # Save metrics for DVC
+    with open("models/metrics.json", "w") as f:
+        json.dump(metrics, f, indent=2)
+
+    # Save model for DVC
+    with open("models/churn_model.pkl", "wb") as f:
+        pickle.dump(model, f)
+
+    print(f"Model trained with accuracy: {metrics['accuracy']:.4f}")
+```
+
+### DVC in Airflow DAG
+
+Create `airflow/dags/dvc_pipeline_dag.py`:
+
+```python
+from airflow import DAG
+from airflow.operators.bash import BashOperator
+from airflow.operators.python import PythonOperator
+from datetime import datetime, timedelta
+
+default_args = {
+    'owner': 'ml-team',
+    'retries': 2,
+    'retry_delay': timedelta(minutes=5),
+}
+
+def pull_latest_data(**context):
+    """Pull latest data from DVC remote"""
+    import subprocess
+
+    # Pull data
+    result = subprocess.run(
+        ["dvc", "pull", "data/raw"],
+        capture_output=True,
+        text=True,
+        cwd="/opt/airflow/dags/mlops-project"
+    )
+
+    if result.returncode != 0:
+        raise Exception(f"DVC pull failed: {result.stderr}")
+
+    return {"status": "data_pulled", "output": result.stdout}
+
+def run_dvc_pipeline(**context):
+    """Run DVC pipeline"""
+    import subprocess
+
+    result = subprocess.run(
+        ["dvc", "repro"],
+        capture_output=True,
+        text=True,
+        cwd="/opt/airflow/dags/mlops-project"
+    )
+
+    if result.returncode != 0:
+        raise Exception(f"DVC repro failed: {result.stderr}")
+
+    return {"status": "pipeline_complete", "output": result.stdout}
+
+def push_artifacts(**context):
+    """Push trained model and metrics to DVC remote"""
+    import subprocess
+
+    result = subprocess.run(
+        ["dvc", "push"],
+        capture_output=True,
+        text=True,
+        cwd="/opt/airflow/dags/mlops-project"
+    )
+
+    if result.returncode != 0:
+        raise Exception(f"DVC push failed: {result.stderr}")
+
+    return {"status": "artifacts_pushed"}
+
+def commit_changes(**context):
+    """Commit DVC lock file changes to Git"""
+    import subprocess
+
+    cmds = [
+        ["git", "add", "dvc.lock", "models/*.dvc"],
+        ["git", "commit", "-m", f"Training run {context['execution_date']}"],
+        ["git", "push", "origin", "main"]
+    ]
+
+    for cmd in cmds:
+        result = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            cwd="/opt/airflow/dags/mlops-project"
+        )
+        if result.returncode != 0:
+            print(f"Warning: {' '.join(cmd)} returned: {result.stderr}")
+
+with DAG(
+    'dvc_ml_pipeline',
+    default_args=default_args,
+    schedule_interval='0 2 * * *',
+    start_date=datetime(2024, 1, 1),
+    catchup=False,
+    tags=['dvc', 'ml-pipeline'],
+) as dag:
+
+    pull_data = PythonOperator(
+        task_id='pull_latest_data',
+        python_callable=pull_latest_data
+    )
+
+    run_pipeline = PythonOperator(
+        task_id='run_dvc_pipeline',
+        python_callable=run_dvc_pipeline
+    )
+
+    push_results = PythonOperator(
+        task_id='push_artifacts',
+        python_callable=push_artifacts
+    )
+
+    commit = PythonOperator(
+        task_id='commit_changes',
+        python_callable=commit_changes
+    )
+
+    pull_data >> run_pipeline >> push_results >> commit
+```
+
+### DVC Data Registry
+
+Create a centralized data registry:
+
+```bash
+# Create data registry repository
+mkdir dvc-data-registry
+cd dvc-data-registry
+git init
+dvc init
+
+# Configure remote
+dvc remote add -d storage s3://data-registry
+
+# Import data from other projects
+dvc import https://github.com/org/data-source data/customers.csv
+dvc import https://github.com/org/data-source data/transactions.csv
+
+# Create versioned datasets
+dvc add datasets/v1.0/
+git tag -a "v1.0" -m "Initial dataset release"
+
+dvc add datasets/v2.0/
+git tag -a "v2.0" -m "Updated with Q4 data"
+```
+
+### Using Data Registry in Projects
+
+```bash
+# Import specific version of data
+dvc import https://github.com/org/dvc-data-registry \
+    datasets/customers.csv \
+    --rev v2.0
+
+# Get data URL for programmatic access
+dvc get https://github.com/org/dvc-data-registry \
+    datasets/customers.csv \
+    --rev v2.0
+
+# In Python
+import dvc.api
+
+url = dvc.api.get_url(
+    'datasets/customers.csv',
+    repo='https://github.com/org/dvc-data-registry',
+    rev='v2.0'
+)
+
+# Read directly with pandas
+with dvc.api.open(
+    'datasets/customers.csv',
+    repo='https://github.com/org/dvc-data-registry',
+    rev='v2.0'
+) as f:
+    df = pd.read_csv(f)
+```
+
+### DVC Metrics and Plots
+
+```bash
+# View metrics
+dvc metrics show
+
+# Compare metrics across Git commits/branches
+dvc metrics diff HEAD~1
+
+# View plots
+dvc plots show
+
+# Compare plots
+dvc plots diff HEAD~1
+
+# Generate HTML report
+dvc plots show --out plots_report.html
+```
+
+### CI/CD with DVC (GitHub Actions)
+
+Create `.github/workflows/dvc-pipeline.yaml`:
+
+```yaml
+name: DVC Pipeline
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'data/**'
+      - 'src/**'
+      - 'params.yaml'
+      - 'dvc.yaml'
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install dvc[s3] mlflow scikit-learn pandas
+
+      - name: Configure DVC remote
+        run: |
+          dvc remote modify minio access_key_id ${{ secrets.MINIO_ACCESS_KEY }}
+          dvc remote modify minio secret_access_key ${{ secrets.MINIO_SECRET_KEY }}
+
+      - name: Pull data
+        run: dvc pull
+
+      - name: Run pipeline
+        run: dvc repro
+
+      - name: Push results
+        run: dvc push
+
+      - name: Commit changes
+        run: |
+          git config user.name "GitHub Actions"
+          git config user.email "actions@github.com"
+          git add dvc.lock
+          git diff --staged --quiet || git commit -m "Update DVC lock file"
+          git push
+```
+
+---
+
 ## Verification
 
 ```bash
 #!/bin/bash
-# verify_feast_gx.sh
+# verify_feast_gx_dvc.sh
 
-echo "=== Feature Store & Validation Verification ==="
+echo "=== Feature Store, Validation & Data Versioning Verification ==="
 
 echo -e "\n1. Feast Registry:"
 feast feature-views list
@@ -940,10 +1501,20 @@ great_expectations suite list
 echo -e "\n3. Feast Server (if deployed):"
 kubectl get pods -n feast
 
+echo -e "\n4. DVC Status:"
+dvc status
+dvc remote list
+
+echo -e "\n5. DVC Data:"
+dvc list . --dvc-only
+
+echo -e "\n6. DVC Experiments:"
+dvc exp show --no-pager | head -20
+
 echo -e "\n=== Verification Complete ==="
 ```
 
 ---
 
 **Status**: Phase 05 Complete
-**Features Covered**: Feast Feature Store, Great Expectations Data Validation
+**Features Covered**: Feast Feature Store, Great Expectations Data Validation, DVC Data Versioning
