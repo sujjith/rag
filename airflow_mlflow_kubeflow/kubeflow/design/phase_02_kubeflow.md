@@ -2,7 +2,14 @@
 
 ## Overview
 
-Kubeflow implementation on Minikube with full component stack for ML workflows.
+Kubeflow v1.11.0 (Latest Stable) implementation on Minikube with full component stack for ML workflows.
+
+### Version: 1.11.0 Features
+- **Full KFP v2 Support**: Native Kubeflow Pipelines v2 with improved artifact handling
+- **Enhanced Model Registry**: Better model versioning and deployment workflows
+- **Security Patches**: Latest CVE fixes and security improvements
+- **Improved Katib**: Enhanced hyperparameter tuning algorithms
+- **Updated Training Operators**: Better distributed training support
 
 ---
 

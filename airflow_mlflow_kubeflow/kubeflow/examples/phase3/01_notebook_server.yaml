@@ -17,7 +17,7 @@ spec:
     spec:
       containers:
         - name: jupyter-scipy
-          image: kubeflownotebookswg/jupyter-scipy:v1.8.0
+          image: kubeflownotebookswg/jupyter-scipy:v1.11.0
           resources:
             requests:
               cpu: "0.5"

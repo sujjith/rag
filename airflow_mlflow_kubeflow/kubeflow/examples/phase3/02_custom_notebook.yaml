@@ -21,14 +21,14 @@ spec:
       containers:
         - name: ml-notebook
           # Using base image with pip install at startup
-          image: kubeflownotebookswg/jupyter-scipy:v1.8.0
+          image: kubeflownotebookswg/jupyter-scipy:v1.11.0
           command:
             - /bin/bash
             - -c
             - |
               pip install --quiet \
                 mlflow==2.9.2 \
-                kfp==2.4.0 \
+                kfp==2.10.0 \
                 xgboost \
                 lightgbm \
                 optuna \

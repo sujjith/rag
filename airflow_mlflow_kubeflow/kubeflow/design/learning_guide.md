@@ -77,7 +77,7 @@ git clone https://github.com/kubeflow/manifests.git
 cd manifests
 
 # Checkout stable version
-git checkout v1.8.0
+git checkout v1.11.0
 
 # Install Kubeflow (takes 10-15 minutes)
 while ! kustomize build example | kubectl apply -f -; do
@@ -144,7 +144,7 @@ kubectl get pods -n kubeflow -l katib.kubeflow.org/component=controller
 ## 2.1 Install KFP SDK
 
 ```bash
-pip install kfp==2.4.0
+pip install kfp==2.10.0
 ```
 
 ## 2.2 Pipeline Concepts
@@ -416,7 +416,7 @@ print(f"Run ID: {run.run_id}")
 2. Go to Notebooks → New Notebook
 3. Configure:
    - Name: `my-notebook`
-   - Image: `kubeflownotebookswg/jupyter-scipy:v1.8.0`
+   - Image: `kubeflownotebookswg/jupyter-scipy:v1.11.0`
    - CPU: 1, Memory: 2Gi
 4. Click Launch
 
@@ -435,7 +435,7 @@ spec:
     spec:
       containers:
       - name: my-jupyter
-        image: kubeflownotebookswg/jupyter-scipy:v1.8.0
+        image: kubeflownotebookswg/jupyter-scipy:v1.11.0
         resources:
           requests:
             cpu: "0.5"
@@ -473,14 +473,14 @@ kubectl apply -f phase3/notebook-server.yaml
 Create `phase3/Dockerfile.notebook`:
 
 ```dockerfile
-FROM kubeflownotebookswg/jupyter-scipy:v1.8.0
+FROM kubeflownotebookswg/jupyter-scipy:v1.11.0
 
 USER root
 
 # Install additional packages
 RUN pip install --no-cache-dir \
     mlflow==2.9.2 \
-    kfp==2.4.0 \
+    kfp==2.10.0 \
     xgboost \
     lightgbm
 

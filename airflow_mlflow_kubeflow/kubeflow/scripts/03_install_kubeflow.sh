@@ -6,7 +6,7 @@ echo "  Kubeflow Installation"
 echo "=========================================="
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-v1.8.0}
+KUBEFLOW_VERSION=${KUBEFLOW_VERSION:-v1.11.0}
 MANIFESTS_DIR="${SCRIPT_DIR}/../manifests/kubeflow-manifests"
 
 echo ""
