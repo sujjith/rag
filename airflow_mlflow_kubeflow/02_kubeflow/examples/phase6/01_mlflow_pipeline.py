@@ -19,7 +19,7 @@ from kfp.dsl import Output, Metrics
 @dsl.component(
     base_image="python:3.11-slim",
     packages_to_install=[
-        "mlflow==2.9.2",
+        "mlflow==3.8.1",
         "scikit-learn==1.3.2",
         "pandas==2.1.4",
         "boto3==1.34.0"
@@ -112,7 +112,7 @@ def train_and_log_to_mlflow(
 
 @dsl.component(
     base_image="python:3.11-slim",
-    packages_to_install=["mlflow==2.9.2", "boto3==1.34.0"]
+    packages_to_install=["mlflow==3.8.1", "boto3==1.34.0"]
 )
 def register_model(
     mlflow_tracking_uri: str,

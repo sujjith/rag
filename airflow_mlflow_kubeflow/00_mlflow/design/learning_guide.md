@@ -31,7 +31,7 @@ python -m venv venv
 source venv/bin/activate
 
 # Install MLflow
-pip install mlflow==2.9.2 scikit-learn pandas matplotlib
+pip install mlflow==3.8.1 scikit-learn pandas matplotlib
 ```
 
 ## 1.2 Start MLflow Tracking Server (Simple Mode)
@@ -1403,7 +1403,7 @@ dependencies:
   - python=3.11
   - pip
   - pip:
-    - mlflow==2.9.2
+    - mlflow==3.8.1
     - scikit-learn==1.3.2
     - pandas==2.1.4
 ```

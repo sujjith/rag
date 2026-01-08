@@ -2,7 +2,14 @@
 
 ## Overview
 
-MLflow implementation using Docker Compose with PostgreSQL backend and local filesystem artifact storage.
+MLflow v3.8.1 (Latest Stable) implementation using Docker Compose with PostgreSQL backend and local filesystem artifact storage.
+
+### Version: 3.8.1 Features
+- **GenAI Observability**: Enhanced tracing and evaluation for LLM applications
+- **Prompt Management**: Manage and version prompts within experiments
+- **Multi-turn Evaluation**: Comprehensive assessment of conversational AI
+- **Improved Model Registry**: Better versioning and deployment workflows
+- **Python >=3.10 Required**: Modern Python features support
 
 ---
 

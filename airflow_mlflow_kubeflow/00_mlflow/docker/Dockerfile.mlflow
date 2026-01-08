@@ -12,7 +12,7 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
 
 # Install MLflow and dependencies
 RUN pip install --no-cache-dir \
-    mlflow==2.9.2 \
+    mlflow==3.8.1 \
     psycopg2-binary==2.9.9 \
     boto3==1.34.0 \
     scikit-learn==1.3.2 \

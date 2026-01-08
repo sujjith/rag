@@ -479,7 +479,7 @@ USER root
 
 # Install additional packages
 RUN pip install --no-cache-dir \
-    mlflow==2.9.2 \
+    mlflow==3.8.1 \
     kfp==2.10.0 \
     xgboost \
     lightgbm

@@ -27,7 +27,7 @@ spec:
             - -c
             - |
               pip install --quiet \
-                mlflow==2.9.2 \
+                mlflow==3.8.1 \
                 kfp==2.10.0 \
                 xgboost \
                 lightgbm \

@@ -2,7 +2,15 @@
 
 ## Overview
 
-Apache Airflow implementation on Kubernetes using Helm with CeleryExecutor and PostgreSQL.
+Apache Airflow v3.1.5 (Latest Stable) implementation on Kubernetes using Helm with CeleryExecutor and PostgreSQL.
+
+### Version: 3.1.5 Features
+- **Task Execution API & Task SDK (AIP-72)**: New task execution model
+- **DAG Versioning (AIP-66)**: Track DAG versions over time
+- **React UI Rewrite**: Modern, faster web interface
+- **Human-in-the-Loop (HITL)**: Workflows can pause for human decisions
+- **Asset-Based Scheduling**: Improved data-aware scheduling
+- **Edge Executor**: Run tasks at the edge
 
 ---
 
