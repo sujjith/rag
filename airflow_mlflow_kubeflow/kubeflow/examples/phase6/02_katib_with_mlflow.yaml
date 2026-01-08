@@ -1,0 +1,164 @@
+# Phase 6.2: Katib Experiment with MLflow Logging
+#
+# Each Katib trial logs to MLflow for comprehensive tracking
+#
+# Prerequisites:
+# - MLflow server running and accessible
+# - Update MLFLOW_TRACKING_URI if needed
+#
+# Apply: kubectl apply -f 02_katib_with_mlflow.yaml
+#
+apiVersion: kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  name: katib-mlflow-experiment
+  namespace: kubeflow-user-example-com
+spec:
+  objective:
+    type: maximize
+    goal: 0.98
+    objectiveMetricName: accuracy
+
+  algorithm:
+    algorithmName: random
+
+  parallelTrialCount: 2
+  maxTrialCount: 8
+  maxFailedTrialCount: 2
+
+  parameters:
+    - name: n_estimators
+      parameterType: int
+      feasibleSpace:
+        min: "50"
+        max: "200"
+
+    - name: max_depth
+      parameterType: int
+      feasibleSpace:
+        min: "3"
+        max: "15"
+
+    - name: min_samples_split
+      parameterType: int
+      feasibleSpace:
+        min: "2"
+        max: "10"
+
+  trialTemplate:
+    primaryContainerName: training
+    trialParameters:
+      - name: nEstimators
+        reference: n_estimators
+      - name: maxDepth
+        reference: max_depth
+      - name: minSamplesSplit
+        reference: min_samples_split
+
+    trialSpec:
+      apiVersion: batch/v1
+      kind: Job
+      spec:
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: training
+                image: python:3.11-slim
+                env:
+                  # Update this to your MLflow server URL
+                  - name: MLFLOW_TRACKING_URI
+                    value: "http://mlflow-server.mlflow.svc.cluster.local:5000"
+                  - name: MLFLOW_EXPERIMENT_NAME
+                    value: "katib-hp-tuning"
+                command:
+                  - "sh"
+                  - "-c"
+                  - |
+                    pip install mlflow scikit-learn pandas boto3 -q
+
+                    python << 'EOF'
+                    import os
+                    import mlflow
+                    import mlflow.sklearn
+                    from sklearn.datasets import load_iris
+                    from sklearn.model_selection import train_test_split, cross_val_score
+                    from sklearn.ensemble import RandomForestClassifier
+                    from sklearn.metrics import accuracy_score, f1_score
+
+                    # Get hyperparameters from Katib
+                    n_estimators = ${trialParameters.nEstimators}
+                    max_depth = ${trialParameters.maxDepth}
+                    min_samples_split = ${trialParameters.minSamplesSplit}
+
+                    # MLflow setup
+                    mlflow_uri = os.environ.get("MLFLOW_TRACKING_URI", "http://localhost:5000")
+                    experiment_name = os.environ.get("MLFLOW_EXPERIMENT_NAME", "katib-experiments")
+
+                    try:
+                        mlflow.set_tracking_uri(mlflow_uri)
+                        mlflow.set_experiment(experiment_name)
+                        mlflow_enabled = True
+                        print(f"MLflow tracking enabled: {mlflow_uri}")
+                    except Exception as e:
+                        print(f"MLflow not available: {e}")
+                        mlflow_enabled = False
+
+                    # Load data
+                    iris = load_iris()
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        iris.data, iris.target, test_size=0.2, random_state=42
+                    )
+
+                    # Train model
+                    model = RandomForestClassifier(
+                        n_estimators=n_estimators,
+                        max_depth=max_depth,
+                        min_samples_split=min_samples_split,
+                        random_state=42
+                    )
+                    model.fit(X_train, y_train)
+
+                    # Evaluate
+                    y_pred = model.predict(X_test)
+                    accuracy = accuracy_score(y_test, y_pred)
+                    f1 = f1_score(y_test, y_pred, average="weighted")
+
+                    # Cross-validation
+                    cv_scores = cross_val_score(model, iris.data, iris.target, cv=5)
+
+                    # Log to MLflow
+                    if mlflow_enabled:
+                        try:
+                            with mlflow.start_run():
+                                # Log parameters
+                                mlflow.log_params({
+                                    "n_estimators": n_estimators,
+                                    "max_depth": max_depth,
+                                    "min_samples_split": min_samples_split,
+                                    "source": "katib"
+                                })
+
+                                # Log metrics
+                                mlflow.log_metrics({
+                                    "accuracy": accuracy,
+                                    "f1_score": f1,
+                                    "cv_mean": cv_scores.mean(),
+                                    "cv_std": cv_scores.std()
+                                })
+
+                                # Log model
+                                mlflow.sklearn.log_model(model, "model")
+
+                                print(f"Logged to MLflow: run_id={mlflow.active_run().info.run_id}")
+                        except Exception as e:
+                            print(f"MLflow logging failed: {e}")
+
+                    # Print metrics for Katib (required format)
+                    print(f"accuracy={accuracy:.4f}")
+                    print(f"f1_score={f1:.4f}")
+                    EOF
+                resources:
+                  limits:
+                    cpu: "500m"
+                    memory: "512Mi"

@@ -1,0 +1,132 @@
+# Phase 4.1: Random Search Hyperparameter Tuning
+#
+# This Katib experiment performs random search over hyperparameters
+#
+# Apply: kubectl apply -f 01_random_search.yaml
+# Monitor: kubectl get experiments -n kubeflow-user-example-com
+# Delete: kubectl delete -f 01_random_search.yaml
+#
+apiVersion: kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  name: random-search-iris
+  namespace: kubeflow-user-example-com
+spec:
+  # Objective: What we're optimizing
+  objective:
+    type: maximize
+    goal: 0.98
+    objectiveMetricName: accuracy
+    additionalMetricNames:
+      - f1_score
+
+  # Algorithm: How we search
+  algorithm:
+    algorithmName: random
+    algorithmSettings:
+      - name: random_state
+        value: "42"
+
+  # Parallelism settings
+  parallelTrialCount: 2
+  maxTrialCount: 10
+  maxFailedTrialCount: 3
+
+  # Hyperparameters to tune
+  parameters:
+    - name: n_estimators
+      parameterType: int
+      feasibleSpace:
+        min: "50"
+        max: "200"
+
+    - name: max_depth
+      parameterType: int
+      feasibleSpace:
+        min: "3"
+        max: "15"
+
+    - name: min_samples_split
+      parameterType: int
+      feasibleSpace:
+        min: "2"
+        max: "10"
+
+    - name: learning_rate
+      parameterType: double
+      feasibleSpace:
+        min: "0.01"
+        max: "0.3"
+
+  # How to run each trial
+  trialTemplate:
+    primaryContainerName: training
+    trialParameters:
+      - name: nEstimators
+        description: Number of trees
+        reference: n_estimators
+      - name: maxDepth
+        description: Maximum tree depth
+        reference: max_depth
+      - name: minSamplesSplit
+        description: Minimum samples to split
+        reference: min_samples_split
+      - name: learningRate
+        description: Learning rate (not used for RF, demo only)
+        reference: learning_rate
+
+    trialSpec:
+      apiVersion: batch/v1
+      kind: Job
+      spec:
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: training
+                image: python:3.11-slim
+                command:
+                  - "sh"
+                  - "-c"
+                  - |
+                    pip install scikit-learn pandas -q
+
+                    python << 'EOF'
+                    from sklearn.datasets import load_iris
+                    from sklearn.model_selection import train_test_split
+                    from sklearn.ensemble import RandomForestClassifier
+                    from sklearn.metrics import accuracy_score, f1_score
+
+                    # Get hyperparameters from Katib
+                    n_estimators = ${trialParameters.nEstimators}
+                    max_depth = ${trialParameters.maxDepth}
+                    min_samples_split = ${trialParameters.minSamplesSplit}
+
+                    # Load data
+                    iris = load_iris()
+                    X_train, X_test, y_train, y_test = train_test_split(
+                        iris.data, iris.target, test_size=0.2, random_state=42
+                    )
+
+                    # Train model
+                    model = RandomForestClassifier(
+                        n_estimators=n_estimators,
+                        max_depth=max_depth,
+                        min_samples_split=min_samples_split,
+                        random_state=42
+                    )
+                    model.fit(X_train, y_train)
+
+                    # Evaluate
+                    y_pred = model.predict(X_test)
+                    accuracy = accuracy_score(y_test, y_pred)
+                    f1 = f1_score(y_test, y_pred, average='weighted')
+
+                    # Print metrics in Katib format
+                    print(f"accuracy={accuracy:.4f}")
+                    print(f"f1_score={f1:.4f}")
+                    EOF
+                resources:
+                  limits:
+                    cpu: "500m"
+                    memory: "512Mi"

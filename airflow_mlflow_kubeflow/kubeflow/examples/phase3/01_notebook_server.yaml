@@ -1,0 +1,55 @@
+# Phase 3.1: Notebook Server Definition
+#
+# This creates a Jupyter notebook server in Kubeflow
+#
+# Apply: kubectl apply -f 01_notebook_server.yaml
+# Delete: kubectl delete -f 01_notebook_server.yaml
+#
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: jupyter-scipy
+  namespace: kubeflow-user-example-com
+  labels:
+    app: jupyter-scipy
+spec:
+  template:
+    spec:
+      containers:
+        - name: jupyter-scipy
+          image: kubeflownotebookswg/jupyter-scipy:v1.8.0
+          resources:
+            requests:
+              cpu: "0.5"
+              memory: "1Gi"
+            limits:
+              cpu: "2"
+              memory: "4Gi"
+          env:
+            - name: NB_PREFIX
+              value: /notebook/kubeflow-user-example-com/jupyter-scipy
+          volumeMounts:
+            - name: workspace
+              mountPath: /home/jovyan
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: jupyter-scipy-workspace
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: "1Gi"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: jupyter-scipy-workspace
+  namespace: kubeflow-user-example-com
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 10Gi

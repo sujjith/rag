@@ -1,0 +1,80 @@
+# Phase 3.2: Custom Notebook Server with ML Libraries
+#
+# A notebook server with additional ML tools pre-installed
+#
+# Apply: kubectl apply -f 02_custom_notebook.yaml
+#
+apiVersion: kubeflow.org/v1
+kind: Notebook
+metadata:
+  name: ml-notebook
+  namespace: kubeflow-user-example-com
+  labels:
+    app: ml-notebook
+  annotations:
+    notebooks.kubeflow.org/http-rewrite-uri: "/"
+    notebooks.kubeflow.org/http-headers-request-set: |
+      {"X-RStudio-Root-Path": "/notebook/kubeflow-user-example-com/ml-notebook/"}
+spec:
+  template:
+    spec:
+      containers:
+        - name: ml-notebook
+          # Using base image with pip install at startup
+          image: kubeflownotebookswg/jupyter-scipy:v1.8.0
+          command:
+            - /bin/bash
+            - -c
+            - |
+              pip install --quiet \
+                mlflow==2.9.2 \
+                kfp==2.4.0 \
+                xgboost \
+                lightgbm \
+                optuna \
+                shap
+              jupyter lab --notebook-dir=/home/jovyan \
+                --ip=0.0.0.0 \
+                --no-browser \
+                --allow-root \
+                --port=8888 \
+                --LabApp.token='' \
+                --LabApp.password='' \
+                --LabApp.allow_origin='*' \
+                --LabApp.base_url=/notebook/kubeflow-user-example-com/ml-notebook
+          resources:
+            requests:
+              cpu: "1"
+              memory: "2Gi"
+            limits:
+              cpu: "4"
+              memory: "8Gi"
+          ports:
+            - containerPort: 8888
+              name: notebook-port
+              protocol: TCP
+          volumeMounts:
+            - name: workspace
+              mountPath: /home/jovyan
+            - name: shm
+              mountPath: /dev/shm
+      volumes:
+        - name: workspace
+          persistentVolumeClaim:
+            claimName: ml-notebook-workspace
+        - name: shm
+          emptyDir:
+            medium: Memory
+            sizeLimit: "2Gi"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: ml-notebook-workspace
+  namespace: kubeflow-user-example-com
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 20Gi

@@ -1,0 +1,155 @@
+# Apache Airflow Helm Chart Values
+# For CeleryExecutor with PostgreSQL
+
+# Airflow version
+airflowVersion: "2.8.0"
+defaultAirflowTag: "2.8.0"
+
+# Executor type
+executor: "CeleryExecutor"
+
+# Web server configuration
+webserver:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  service:
+    type: ClusterIP
+    ports:
+      - name: airflow-ui
+        port: 8080
+
+# Scheduler configuration
+scheduler:
+  replicas: 1
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+
+# Celery Workers
+workers:
+  replicas: 2
+  resources:
+    requests:
+      cpu: "500m"
+      memory: "1Gi"
+    limits:
+      cpu: "1"
+      memory: "2Gi"
+  persistence:
+    enabled: true
+    size: 10Gi
+
+# Triggerer for async sensors
+triggerer:
+  enabled: true
+  replicas: 1
+  resources:
+    requests:
+      cpu: "250m"
+      memory: "512Mi"
+    limits:
+      cpu: "500m"
+      memory: "1Gi"
+
+# Flower for Celery monitoring
+flower:
+  enabled: true
+  resources:
+    requests:
+      cpu: "100m"
+      memory: "256Mi"
+
+# Redis as message broker
+redis:
+  enabled: true
+  persistence:
+    enabled: true
+    size: 1Gi
+
+# PostgreSQL database
+postgresql:
+  enabled: true
+  auth:
+    postgresPassword: "airflow"
+    username: "airflow"
+    password: "airflow"
+    database: "airflow"
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+
+# Create default user
+createUserJob:
+  useHelmHooks: false
+  applyCustomEnv: false
+
+# Web server authentication
+webserverSecretKey: "airflow-secret-key-change-me"
+
+# Default admin user
+# Username: admin, Password: admin
+config:
+  webserver:
+    expose_config: "True"
+    rbac: "True"
+  core:
+    load_examples: "False"
+    default_timezone: "UTC"
+  celery:
+    worker_concurrency: 4
+  logging:
+    remote_logging: "False"
+
+# Environment variables
+env:
+  - name: AIRFLOW__CORE__FERNET_KEY
+    value: "ZmRza2poZmRzYWtqaGZkc2FqaGtmZHNhamhmZHNha2poZmQ="
+  - name: AIRFLOW__WEBSERVER__SECRET_KEY
+    value: "airflow-secret-key-change-me"
+
+# Extra pip packages
+extraPipPackages:
+  - mlflow==2.9.2
+  - scikit-learn==1.3.2
+  - pandas==2.1.4
+  - kfp==2.4.0
+
+# DAGs configuration
+dags:
+  persistence:
+    enabled: true
+    size: 1Gi
+    accessMode: ReadWriteOnce
+  gitSync:
+    enabled: false
+
+# Logs persistence
+logs:
+  persistence:
+    enabled: true
+    size: 5Gi
+
+# Migration job
+migrateDatabaseJob:
+  enabled: true
+  useHelmHooks: false
+
+# Security context
+securityContext:
+  runAsUser: 50000
+  fsGroup: 0
+
+# Ingress (disabled, use port-forward)
+ingress:
+  enabled: false
