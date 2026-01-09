@@ -11,6 +11,10 @@ venv/
 ENV/
 env/
 
+# Environment variables
+.env
+.env.*
+
 # MLflow
 mlruns/
 mlartifacts/
