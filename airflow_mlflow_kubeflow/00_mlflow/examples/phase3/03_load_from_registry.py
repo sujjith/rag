@@ -15,8 +15,10 @@ import mlflow.pyfunc
 from mlflow.tracking import MlflowClient
 from sklearn.datasets import load_iris
 import pandas as pd
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 
 MODEL_NAME = "iris-classifier-staged"
 client = MlflowClient()

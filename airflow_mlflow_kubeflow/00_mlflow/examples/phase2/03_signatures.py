@@ -16,8 +16,10 @@ from sklearn.datasets import load_iris
 from sklearn.ensemble import RandomForestClassifier
 import pandas as pd
 import numpy as np
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase2-signatures")
 
 # Load data

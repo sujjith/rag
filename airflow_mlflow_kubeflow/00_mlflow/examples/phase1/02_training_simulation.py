@@ -10,8 +10,10 @@ Run: python 02_training_simulation.py
 """
 import mlflow
 import random
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase1-training-simulation")
 
 print("=" * 60)
@@ -68,5 +70,5 @@ with mlflow.start_run(run_name="simulated-training"):
 
 print("\n" + "=" * 60)
 print("Check the MLflow UI to see the metric charts!")
-print("http://localhost:5000")
+print(f"{TRACKING_URI}")
 print("=" * 60)

@@ -18,8 +18,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score, classification_report
 import pandas as pd
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase4-serving")
 
 MODEL_NAME = "iris-serving-model"

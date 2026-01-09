@@ -16,8 +16,10 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase3-model-registry")
 
 MODEL_NAME = "iris-classifier"
@@ -106,5 +108,5 @@ for rm in client.search_registered_models():
         print(f"  Version {version.version}: {version.current_stage}")
 
 print("\n" + "=" * 60)
-print(f"View at: http://localhost:5000/#/models/{MODEL_NAME}")
+print(f"View at: {TRACKING_URI}/#/models/{MODEL_NAME}")
 print("=" * 60)

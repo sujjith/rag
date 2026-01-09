@@ -10,9 +10,11 @@ This script demonstrates:
 Run: python 01_hello_mlflow.py
 """
 import mlflow
+import os
 
 # Connect to tracking server
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 
 # Create an experiment
 mlflow.set_experiment("phase1-hello-mlflow")
@@ -50,5 +52,5 @@ with mlflow.start_run():
     print("  - loss: 0.15")
     print("  - val_accuracy: 0.82")
     print("")
-    print("View at: http://localhost:5000")
+    print(f"View at: {TRACKING_URI}")
     print("=" * 50)

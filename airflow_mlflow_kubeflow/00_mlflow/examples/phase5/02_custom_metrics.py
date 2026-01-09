@@ -26,7 +26,8 @@ import json
 import os
 import shutil
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase5-custom-metrics")
 
 # Disable autolog for manual control
@@ -212,5 +213,5 @@ shutil.rmtree(TEMP_DIR)
 
 print("\n" + "=" * 60)
 print("Comprehensive evaluation complete!")
-print("View at: http://localhost:5000")
+print(f"View at: {TRACKING_URI}")
 print("=" * 60)

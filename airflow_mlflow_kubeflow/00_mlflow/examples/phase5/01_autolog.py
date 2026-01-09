@@ -16,10 +16,12 @@ from sklearn.ensemble import RandomForestClassifier
 from sklearn.linear_model import LogisticRegression
 from sklearn.tree import DecisionTreeClassifier
 import warnings
+import os
 
 warnings.filterwarnings("ignore")
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase5-autolog")
 
 print("=" * 60)
@@ -131,5 +133,5 @@ print("\nAutolog disabled.")
 
 print("\n" + "=" * 60)
 print("Autologging demo complete!")
-print("View experiments at: http://localhost:5000")
+print(f"View experiments at: {TRACKING_URI}")
 print("=" * 60)

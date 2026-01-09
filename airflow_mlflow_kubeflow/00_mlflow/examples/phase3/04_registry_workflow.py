@@ -21,8 +21,10 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import accuracy_score
 import pandas as pd
 import time
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase3-workflow")
 
 MODEL_NAME = "iris-production-workflow"
@@ -204,5 +206,5 @@ prod_model = mlflow.pyfunc.load_model(f"models:/{MODEL_NAME}/Production")
 print("Production model ready for inference!")
 
 print("\n" + "=" * 70)
-print(f"View at: http://localhost:5000/#/models/{MODEL_NAME}")
+print(f"View at: {TRACKING_URI}/#/models/{MODEL_NAME}")
 print("=" * 70)

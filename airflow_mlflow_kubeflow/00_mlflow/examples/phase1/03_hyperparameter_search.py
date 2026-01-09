@@ -13,8 +13,10 @@ from sklearn.datasets import load_iris
 from sklearn.model_selection import train_test_split
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import accuracy_score, f1_score
+import os
 
-mlflow.set_tracking_uri("http://localhost:5000")
+TRACKING_URI = os.getenv("MLFLOW_TRACKING_URI", "http://localhost:5000")
+mlflow.set_tracking_uri(TRACKING_URI)
 mlflow.set_experiment("phase1-hyperparameter-search")
 
 # Load data
@@ -91,6 +93,6 @@ print(f"  Parameters: {best['params']}")
 print(f"  Test Accuracy: {best['test_accuracy']:.4f}")
 
 print("\n" + "=" * 70)
-print("Compare runs in MLflow UI: http://localhost:5000")
+print(f"Compare runs in MLflow UI: {TRACKING_URI}")
 print("Use the 'Compare' button to see differences!")
 print("=" * 70)
