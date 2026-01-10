@@ -17,6 +17,9 @@ dependencies = [
     # Statistics (Phase 6: comparison, drift detection)
     "scipy>=1.14.0",
     "statsmodels>=0.14.0",
+    # Jupyter support
+    "ipykernel>=6.29.0",
+    "jupyter>=1.0.0",
 ]
 
 [project.optional-dependencies]

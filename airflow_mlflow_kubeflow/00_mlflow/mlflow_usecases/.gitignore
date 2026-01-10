@@ -20,8 +20,7 @@ mlruns/
 mlartifacts/
 
 # Jupyter Notebook
-.ipynb_checkpoints/
-*.ipynb
+#.ipynb_checkpoints/
 
 # IDE
 .vscode/

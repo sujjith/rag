@@ -33,7 +33,7 @@ services:
       MLFLOW_BACKEND_STORE_URI: postgresql://${POSTGRES_USER:-mlflow}:${POSTGRES_PASSWORD:-mlflow123}@postgres:5432/${POSTGRES_DB:-mlflow}
       MLFLOW_ARTIFACT_ROOT: /mlartifacts
     volumes:
-      - mlartifacts:/mlartifacts
+      - ./mlartifacts:/mlartifacts
     ports:
       - "${MLFLOW_PORT:-5000}:5000"
     command: >
@@ -49,8 +49,6 @@ services:
 
 volumes:
   postgres_data:
-    driver: local
-  mlartifacts:
     driver: local
 
 networks:
