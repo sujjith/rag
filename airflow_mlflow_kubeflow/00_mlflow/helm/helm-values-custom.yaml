@@ -1,0 +1,30 @@
+# Custom values for MLflow Helm chart
+# Using bundled PostgreSQL subchart only
+
+# Enable PostgreSQL subchart (this will auto-configure backend)
+postgresql:
+  enabled: true
+  auth:
+    username: "mlflow"
+    password: "mlflow123"
+    database: "mlflow"
+  primary:
+    persistence:
+      enabled: true
+      size: 5Gi
+
+# Service configuration - NodePort for external access
+service:
+  enabled: true
+  type: NodePort
+  port: 80
+  containerPort: 5000
+
+# Resource limits
+resources:
+  requests:
+    memory: "512Mi"
+    cpu: "250m"
+  limits:
+    memory: "1Gi"
+    cpu: "1000m"

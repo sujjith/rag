@@ -1,0 +1,36 @@
+# Redis Helm values
+architecture: replication
+
+auth:
+  enabled: true
+  password: "redis123"
+
+master:
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+    limits:
+      memory: 2Gi
+      cpu: 1
+
+replica:
+  replicaCount: 2
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: 1Gi
+      cpu: 500m
+
+sentinel:
+  enabled: true
+
+metrics:
+  enabled: true
+  serviceMonitor:
+    enabled: false

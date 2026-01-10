@@ -1,0 +1,112 @@
+# Phase 5.2: Simple PyTorch Training Job
+#
+# A basic PyTorchJob that trains a simple model
+#
+# Apply: kubectl apply -f 02_pytorchjob_simple.yaml
+# Monitor: kubectl get pytorchjobs -n kubeflow-user-example-com
+# Logs: kubectl logs -n kubeflow-user-example-com -l training.kubeflow.org/job-name=pytorch-simple -f
+#
+apiVersion: kubeflow.org/v1
+kind: PyTorchJob
+metadata:
+  name: pytorch-simple
+  namespace: kubeflow-user-example-com
+spec:
+  pytorchReplicaSpecs:
+    Master:
+      replicas: 1
+      restartPolicy: OnFailure
+      template:
+        spec:
+          containers:
+            - name: pytorch
+              image: pytorch/pytorch:2.1.0-cuda11.8-cudnn8-runtime
+              command:
+                - "python"
+                - "-c"
+                - |
+                  import torch
+                  import torch.nn as nn
+                  import torch.optim as optim
+                  from torch.utils.data import DataLoader, TensorDataset
+                  import numpy as np
+
+                  print("=" * 50)
+                  print("PyTorch Simple Training Job")
+                  print("=" * 50)
+                  print(f"PyTorch version: {torch.__version__}")
+                  print(f"CUDA available: {torch.cuda.is_available()}")
+
+                  # Set device
+                  device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+                  print(f"Using device: {device}")
+
+                  # Simple model
+                  class SimpleNet(nn.Module):
+                      def __init__(self):
+                          super().__init__()
+                          self.layers = nn.Sequential(
+                              nn.Linear(10, 64),
+                              nn.ReLU(),
+                              nn.Linear(64, 32),
+                              nn.ReLU(),
+                              nn.Linear(32, 1),
+                              nn.Sigmoid()
+                          )
+
+                      def forward(self, x):
+                          return self.layers(x)
+
+                  model = SimpleNet().to(device)
+                  print(f"\nModel: {model}")
+
+                  # Generate data
+                  np.random.seed(42)
+                  X_train = torch.FloatTensor(np.random.randn(1000, 10))
+                  y_train = ((X_train[:, 0] + X_train[:, 1]) > 0).float().unsqueeze(1)
+
+                  X_test = torch.FloatTensor(np.random.randn(200, 10))
+                  y_test = ((X_test[:, 0] + X_test[:, 1]) > 0).float().unsqueeze(1)
+
+                  train_loader = DataLoader(
+                      TensorDataset(X_train, y_train),
+                      batch_size=32,
+                      shuffle=True
+                  )
+
+                  # Training
+                  criterion = nn.BCELoss()
+                  optimizer = optim.Adam(model.parameters(), lr=0.001)
+
+                  print("\nTraining...")
+                  for epoch in range(10):
+                      model.train()
+                      total_loss = 0
+                      for X_batch, y_batch in train_loader:
+                          X_batch, y_batch = X_batch.to(device), y_batch.to(device)
+
+                          optimizer.zero_grad()
+                          output = model(X_batch)
+                          loss = criterion(output, y_batch)
+                          loss.backward()
+                          optimizer.step()
+                          total_loss += loss.item()
+
+                      avg_loss = total_loss / len(train_loader)
+
+                      # Evaluate
+                      model.eval()
+                      with torch.no_grad():
+                          X_test_d = X_test.to(device)
+                          y_pred = (model(X_test_d) > 0.5).float()
+                          accuracy = (y_pred == y_test.to(device)).float().mean()
+
+                      print(f"Epoch {epoch+1:2d}: loss={avg_loss:.4f}, accuracy={accuracy:.4f}")
+
+                  print("\n" + "=" * 50)
+                  print("Training completed!")
+                  print("=" * 50)
+              resources:
+                limits:
+                  cpu: "2"
+                  memory: "4Gi"

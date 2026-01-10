@@ -1,0 +1,94 @@
+# Phase 4.2: Grid Search Hyperparameter Tuning
+#
+# Exhaustive search over specified parameter values
+#
+# Apply: kubectl apply -f 02_grid_search.yaml
+#
+apiVersion: kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  name: grid-search-iris
+  namespace: kubeflow-user-example-com
+spec:
+  objective:
+    type: maximize
+    goal: 0.98
+    objectiveMetricName: accuracy
+
+  algorithm:
+    algorithmName: grid
+
+  parallelTrialCount: 3
+  maxTrialCount: 12
+  maxFailedTrialCount: 2
+
+  # Grid search uses list of values
+  parameters:
+    - name: n_estimators
+      parameterType: int
+      feasibleSpace:
+        list:
+          - "50"
+          - "100"
+          - "150"
+
+    - name: max_depth
+      parameterType: int
+      feasibleSpace:
+        list:
+          - "5"
+          - "10"
+          - "15"
+          - "20"
+
+  trialTemplate:
+    primaryContainerName: training
+    trialParameters:
+      - name: nEstimators
+        reference: n_estimators
+      - name: maxDepth
+        reference: max_depth
+
+    trialSpec:
+      apiVersion: batch/v1
+      kind: Job
+      spec:
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: training
+                image: python:3.11-slim
+                command:
+                  - "sh"
+                  - "-c"
+                  - |
+                    pip install scikit-learn -q
+
+                    python << 'EOF'
+                    from sklearn.datasets import load_iris
+                    from sklearn.model_selection import train_test_split, cross_val_score
+                    from sklearn.ensemble import RandomForestClassifier
+
+                    n_estimators = ${trialParameters.nEstimators}
+                    max_depth = ${trialParameters.maxDepth}
+
+                    iris = load_iris()
+                    X, y = iris.data, iris.target
+
+                    model = RandomForestClassifier(
+                        n_estimators=n_estimators,
+                        max_depth=max_depth,
+                        random_state=42
+                    )
+
+                    # Use cross-validation for more robust estimate
+                    scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+                    accuracy = scores.mean()
+
+                    print(f"accuracy={accuracy:.4f}")
+                    EOF
+                resources:
+                  limits:
+                    cpu: "500m"
+                    memory: "512Mi"

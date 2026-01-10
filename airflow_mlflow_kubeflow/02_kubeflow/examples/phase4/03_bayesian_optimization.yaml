@@ -1,0 +1,120 @@
+# Phase 4.3: Bayesian Optimization
+#
+# Uses Gaussian Process to efficiently search hyperparameter space
+# More sample-efficient than random search
+#
+# Apply: kubectl apply -f 03_bayesian_optimization.yaml
+#
+apiVersion: kubeflow.org/v1beta1
+kind: Experiment
+metadata:
+  name: bayesian-opt-iris
+  namespace: kubeflow-user-example-com
+spec:
+  objective:
+    type: maximize
+    goal: 0.99
+    objectiveMetricName: accuracy
+
+  algorithm:
+    algorithmName: bayesianoptimization
+    algorithmSettings:
+      - name: random_state
+        value: "42"
+      - name: n_initial_points
+        value: "3"
+      - name: acq_func
+        value: "gp_hedge"
+
+  parallelTrialCount: 2
+  maxTrialCount: 15
+  maxFailedTrialCount: 3
+
+  # Continuous and discrete parameters
+  parameters:
+    - name: learning_rate
+      parameterType: double
+      feasibleSpace:
+        min: "0.0001"
+        max: "0.1"
+
+    - name: n_estimators
+      parameterType: int
+      feasibleSpace:
+        min: "50"
+        max: "300"
+
+    - name: max_depth
+      parameterType: int
+      feasibleSpace:
+        min: "3"
+        max: "20"
+
+    - name: min_samples_leaf
+      parameterType: int
+      feasibleSpace:
+        min: "1"
+        max: "10"
+
+  trialTemplate:
+    primaryContainerName: training
+    trialParameters:
+      - name: learningRate
+        reference: learning_rate
+      - name: nEstimators
+        reference: n_estimators
+      - name: maxDepth
+        reference: max_depth
+      - name: minSamplesLeaf
+        reference: min_samples_leaf
+
+    trialSpec:
+      apiVersion: batch/v1
+      kind: Job
+      spec:
+        template:
+          spec:
+            restartPolicy: Never
+            containers:
+              - name: training
+                image: python:3.11-slim
+                command:
+                  - "sh"
+                  - "-c"
+                  - |
+                    pip install scikit-learn -q
+
+                    python << 'EOF'
+                    from sklearn.datasets import load_iris
+                    from sklearn.model_selection import cross_val_score
+                    from sklearn.ensemble import GradientBoostingClassifier
+
+                    # Get hyperparameters
+                    learning_rate = ${trialParameters.learningRate}
+                    n_estimators = ${trialParameters.nEstimators}
+                    max_depth = ${trialParameters.maxDepth}
+                    min_samples_leaf = ${trialParameters.minSamplesLeaf}
+
+                    # Load data
+                    iris = load_iris()
+                    X, y = iris.data, iris.target
+
+                    # Train with Gradient Boosting (uses learning_rate)
+                    model = GradientBoostingClassifier(
+                        learning_rate=learning_rate,
+                        n_estimators=n_estimators,
+                        max_depth=max_depth,
+                        min_samples_leaf=min_samples_leaf,
+                        random_state=42
+                    )
+
+                    # Cross-validation
+                    scores = cross_val_score(model, X, y, cv=5, scoring='accuracy')
+                    accuracy = scores.mean()
+
+                    print(f"accuracy={accuracy:.4f}")
+                    EOF
+                resources:
+                  limits:
+                    cpu: "500m"
+                    memory: "512Mi"
