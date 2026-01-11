@@ -1,0 +1,20 @@
+[project]
+name = "01-churn-prediction"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.13"
+dependencies = [
+    "boto3>=1.42.19",
+    "dvc>=3.66.1",
+    "dvc-s3>=3.2.2",
+    "evidently>=0.7.20",
+    "feast>=0.58.0",
+    "great-expectations>=1.10.0",
+    "kfp>=2.15.2",
+    "mlflow>=3.8.1",
+    "numpy>=2.4.1",
+    "pandas>=2.3.3",
+    "redis>=7.1.0",
+    "scikit-learn>=1.8.0",
+]

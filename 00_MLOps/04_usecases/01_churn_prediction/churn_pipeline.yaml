@@ -1,0 +1,299 @@
+# PIPELINE DEFINITION
+# Name: churn-prediction-pipeline
+# Description: End-to-end churn prediction pipeline
+# Inputs:
+#    bucket_name: str [Default: 'ml-data']
+#    experiment_name: str [Default: 'churn_prediction_v1']
+#    mlflow_tracking_uri: str [Default: 'http://mlflow.mlflow.svc.cluster.local:5000']
+#    object_name: str [Default: 'customers.csv']
+#    s3_access_key: str [Default: 'minioadmin']
+#    s3_endpoint: str [Default: 'http://minio.minio.svc.cluster.local:9000']
+#    s3_secret_key: str [Default: 'minioadmin123']
+components:
+  comp-load-data-component:
+    executorLabel: exec-load-data-component
+    inputDefinitions:
+      parameters:
+        bucket_name:
+          parameterType: STRING
+        object_name:
+          parameterType: STRING
+        s3_access_key:
+          parameterType: STRING
+        s3_endpoint:
+          parameterType: STRING
+        s3_secret_key:
+          parameterType: STRING
+    outputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+  comp-register-model-component:
+    executorLabel: exec-register-model-component
+    inputDefinitions:
+      artifacts:
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+      parameters:
+        experiment_name:
+          parameterType: STRING
+        mlflow_tracking_uri:
+          parameterType: STRING
+        s3_access_key:
+          parameterType: STRING
+        s3_endpoint:
+          parameterType: STRING
+        s3_secret_key:
+          parameterType: STRING
+  comp-train-model-component:
+    executorLabel: exec-train-model-component
+    inputDefinitions:
+      artifacts:
+        dataset:
+          artifactType:
+            schemaTitle: system.Dataset
+            schemaVersion: 0.0.1
+    outputDefinitions:
+      artifacts:
+        metrics:
+          artifactType:
+            schemaTitle: system.Metrics
+            schemaVersion: 0.0.1
+        model:
+          artifactType:
+            schemaTitle: system.Model
+            schemaVersion: 0.0.1
+deploymentSpec:
+  executors:
+    exec-load-data-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - load_data_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'pandas' 'boto3'\
+          \ 's3fs' 'pyarrow'  &&  python3 -m pip install --quiet --no-warn-script-location\
+          \ 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"\
+          3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef load_data_component(\n    bucket_name: str,\n    object_name:\
+          \ str,\n    s3_endpoint: str,\n    s3_access_key: str,\n    s3_secret_key:\
+          \ str,\n    dataset: dsl.Output[dsl.Dataset]\n):\n    import pandas as pd\n\
+          \    import boto3\n    from botocore.client import Config\n\n    print(f\"\
+          Loading from s3://{bucket_name}/{object_name}\")\n    s3 = boto3.client('s3',\n\
+          \                      endpoint_url=s3_endpoint,\n                     \
+          \ aws_access_key_id=s3_access_key,\n                      aws_secret_access_key=s3_secret_key,\n\
+          \                      config=Config(signature_version='s3v4'),\n      \
+          \                region_name='us-east-1')\n\n    obj = s3.get_object(Bucket=bucket_name,\
+          \ Key=object_name)\n    df = pd.read_csv(obj['Body'])\n\n    # Write to\
+          \ the output path provided by KFP\n    df.to_csv(dataset.path, index=False)\n\
+          \    print(f\"Saved dataset to {dataset.path}\")\n\n"
+        image: python:3.11
+    exec-register-model-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - register_model_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'mlflow' 'boto3'\
+          \ 'joblib' 'scikit-learn' 'pandas'  &&  python3 -m pip install --quiet --no-warn-script-location\
+          \ 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"\
+          3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef register_model_component(\n    model: dsl.Input[dsl.Model],\n\
+          \    mlflow_tracking_uri: str,\n    experiment_name: str,\n    s3_endpoint:\
+          \ str,\n    s3_access_key: str,\n    s3_secret_key: str,\n):\n    import\
+          \ mlflow\n    import joblib\n    import os\n\n    # Set environment variables\
+          \ for MLflow S3 access\n    os.environ[\"MLFLOW_S3_ENDPOINT_URL\"] = s3_endpoint\n\
+          \    os.environ[\"AWS_ACCESS_KEY_ID\"] = s3_access_key\n    os.environ[\"\
+          AWS_SECRET_ACCESS_key\"] = s3_secret_key\n    os.environ[\"AWS_DEFAULT_REGION\"\
+          ] = \"us-east-1\"\n\n    print(f\"Connecting to MLflow at {mlflow_tracking_uri}\"\
+          )\n    mlflow.set_tracking_uri(mlflow_tracking_uri)\n    mlflow.set_experiment(experiment_name)\n\
+          \n    # Load model from artifact\n    loaded_model = joblib.load(model.path)\n\
+          \n    with mlflow.start_run():\n        mlflow.sklearn.log_model(loaded_model,\
+          \ \"model\")\n        print(\"Model logged to MLflow\")\n\n"
+        image: python:3.11
+    exec-train-model-component:
+      container:
+        args:
+        - --executor_input
+        - '{{$}}'
+        - --function_to_execute
+        - train_model_component
+        command:
+        - sh
+        - -c
+        - "\nif ! [ -x \"$(command -v pip)\" ]; then\n    python3 -m ensurepip ||\
+          \ python3 -m ensurepip --user || apt-get install python3-pip\nfi\n\nPIP_DISABLE_PIP_VERSION_CHECK=1\
+          \ python3 -m pip install --quiet --no-warn-script-location 'pandas' 'scikit-learn'\
+          \ 'joblib'  &&  python3 -m pip install --quiet --no-warn-script-location\
+          \ 'kfp==2.15.2' '--no-deps' 'typing-extensions>=3.7.4,<5; python_version<\"\
+          3.9\"' && \"$0\" \"$@\"\n"
+        - sh
+        - -ec
+        - 'program_path=$(mktemp -d)
+
+
+          printf "%s" "$0" > "$program_path/ephemeral_component.py"
+
+          _KFP_RUNTIME=true python3 -m kfp.dsl.executor_main                         --component_module_path                         "$program_path/ephemeral_component.py"                         "$@"
+
+          '
+        - "\nimport kfp\nfrom kfp import dsl\nfrom kfp.dsl import *\nfrom typing import\
+          \ *\n\ndef train_model_component(\n    dataset: dsl.Input[dsl.Dataset],\n\
+          \    model: dsl.Output[dsl.Model],\n    metrics: dsl.Output[dsl.Metrics]\n\
+          ):\n    import pandas as pd\n    from sklearn.model_selection import train_test_split\n\
+          \    from sklearn.ensemble import RandomForestClassifier\n    from sklearn.metrics\
+          \ import accuracy_score, precision_score, recall_score\n    import joblib\n\
+          \n    # Load data\n    df = pd.read_csv(dataset.path)\n\n    # Preprocessing\
+          \ (simplified)\n    # Drop timestamp columns if they exist\n    cols_to_drop\
+          \ = ['customer_id', 'event_timestamp', 'created_timestamp']\n    for col\
+          \ in cols_to_drop:\n        if col in df.columns:\n            df = df.drop(columns=[col])\n\
+          \n    # Simple encoding\n    df = pd.get_dummies(df)\n\n    X = df.drop('churn',\
+          \ axis=1)\n    y = df['churn']\n\n    X_train, X_test, y_train, y_test =\
+          \ train_test_split(X, y, test_size=0.2, random_state=42)\n\n    clf = RandomForestClassifier(n_estimators=100)\n\
+          \    clf.fit(X_train, y_train)\n\n    y_pred = clf.predict(X_test)\n\n \
+          \   acc = accuracy_score(y_test, y_pred)\n    prec = precision_score(y_test,\
+          \ y_pred)\n    rec = recall_score(y_test, y_pred)\n\n    # Save model\n\
+          \    joblib.dump(clf, model.path) # KFP Model artifact is usually a file\
+          \ or dir\n    # If model.path assumes a file name, joblib.dump works. If\
+          \ dir, we need to join.\n    # Usually dsl.Model path ends with filename\
+          \ or we create it.\n    # Let's ensure it's saved.\n\n    # Log metrics\n\
+          \    metrics.log_metric(\"accuracy\", acc)\n    metrics.log_metric(\"precision\"\
+          , prec)\n    metrics.log_metric(\"recall\", rec)\n\n    print(f\"Model trained.\
+          \ Accuracy: {acc}\")\n\n"
+        image: python:3.11
+pipelineInfo:
+  description: End-to-end churn prediction pipeline
+  name: churn-prediction-pipeline
+root:
+  dag:
+    tasks:
+      load-data-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-load-data-component
+        inputs:
+          parameters:
+            bucket_name:
+              componentInputParameter: bucket_name
+            object_name:
+              componentInputParameter: object_name
+            s3_access_key:
+              componentInputParameter: s3_access_key
+            s3_endpoint:
+              componentInputParameter: s3_endpoint
+            s3_secret_key:
+              componentInputParameter: s3_secret_key
+        taskInfo:
+          name: load-data-component
+      register-model-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-register-model-component
+        dependentTasks:
+        - train-model-component
+        inputs:
+          artifacts:
+            model:
+              taskOutputArtifact:
+                outputArtifactKey: model
+                producerTask: train-model-component
+          parameters:
+            experiment_name:
+              componentInputParameter: experiment_name
+            mlflow_tracking_uri:
+              componentInputParameter: mlflow_tracking_uri
+            s3_access_key:
+              componentInputParameter: s3_access_key
+            s3_endpoint:
+              componentInputParameter: s3_endpoint
+            s3_secret_key:
+              componentInputParameter: s3_secret_key
+        taskInfo:
+          name: register-model-component
+      train-model-component:
+        cachingOptions:
+          enableCache: true
+        componentRef:
+          name: comp-train-model-component
+        dependentTasks:
+        - load-data-component
+        inputs:
+          artifacts:
+            dataset:
+              taskOutputArtifact:
+                outputArtifactKey: dataset
+                producerTask: load-data-component
+        taskInfo:
+          name: train-model-component
+  inputDefinitions:
+    parameters:
+      bucket_name:
+        defaultValue: ml-data
+        isOptional: true
+        parameterType: STRING
+      experiment_name:
+        defaultValue: churn_prediction_v1
+        isOptional: true
+        parameterType: STRING
+      mlflow_tracking_uri:
+        defaultValue: http://mlflow.mlflow.svc.cluster.local:5000
+        isOptional: true
+        parameterType: STRING
+      object_name:
+        defaultValue: customers.csv
+        isOptional: true
+        parameterType: STRING
+      s3_access_key:
+        defaultValue: minioadmin
+        isOptional: true
+        parameterType: STRING
+      s3_endpoint:
+        defaultValue: http://minio.minio.svc.cluster.local:9000
+        isOptional: true
+        parameterType: STRING
+      s3_secret_key:
+        defaultValue: minioadmin123
+        isOptional: true
+        parameterType: STRING
+schemaVersion: 2.1.0
+sdkVersion: kfp-2.15.2
