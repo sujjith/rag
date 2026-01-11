@@ -95,14 +95,15 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 helm version
 ```
 
-### 0.3 Setup Chart Directory
+### 0.3 Setup Directories
 
 ```bash
-# Create directory for local helm charts
+# Create directories for charts and value files
 mkdir -p /home/sujith/github/rag/00_MLOps/helm_charts
+mkdir -p /home/sujith/github/rag/00_MLOps/helm_value_files
 cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Add Repositories (we need these to pull the charts)
+# Add Repositories
 helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
 helm repo add minio https://charts.min.io/
 helm repo add bitnami https://charts.bitnami.com/bitnami
@@ -117,6 +118,7 @@ helm repo update
 kubectl create namespace minio
 kubectl create namespace postgresql
 kubectl create namespace redis
+kubectl create namespace ingress-nginx
 
 # Data Loop
 kubectl create namespace airflow
@@ -156,7 +158,6 @@ helm pull ingress-nginx/ingress-nginx --untar
 # Install from local folder
 helm install ingress-nginx ./ingress-nginx \
   --namespace ingress-nginx \
-  --create-namespace \
   --set controller.service.type=NodePort \
   --set controller.service.nodePorts.http=30080 \
   --set controller.service.nodePorts.https=30443
@@ -174,7 +175,7 @@ cd /home/sujith/github/rag/00_MLOps/helm_charts
 helm pull minio/minio --untar
 
 # Create MinIO values file
-cat <<EOF > /tmp/minio-values.yaml
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/minio-values.yaml
 mode: standalone
 replicas: 1
 persistence:
@@ -207,7 +208,7 @@ EOF
 # Install from local folder
 helm install minio ./minio \
   --namespace minio \
-  --values /tmp/minio-values.yaml
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/minio-values.yaml
 
 # Verify
 kubectl get pods -n minio
@@ -226,7 +227,7 @@ cd /home/sujith/github/rag/00_MLOps/helm_charts
 helm pull bitnami/postgresql --untar
 
 # Create PostgreSQL values file
-cat <<EOF > /tmp/postgres-values.yaml
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/postgres-values.yaml
 auth:
   postgresPassword: postgres123
   database: mlops
@@ -254,7 +255,7 @@ EOF
 # Install from local folder
 helm install postgresql ./postgresql \
   --namespace postgresql \
-  --values /tmp/postgres-values.yaml
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/postgres-values.yaml
 
 # Verify
 kubectl get pods -n postgresql
@@ -272,7 +273,7 @@ cd /home/sujith/github/rag/00_MLOps/helm_charts
 helm pull bitnami/redis --untar
 
 # Create Redis values file
-cat <<EOF > /tmp/redis-values.yaml
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/redis-values.yaml
 architecture: standalone
 auth:
   enabled: false
@@ -292,7 +293,7 @@ EOF
 # Install from local folder
 helm install redis ./redis \
   --namespace redis \
-  --values /tmp/redis-values.yaml
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/redis-values.yaml
 
 # Verify
 kubectl get pods -n redis
@@ -330,7 +331,7 @@ cd /home/sujith/github/rag/00_MLOps/helm_charts
 helm pull apache-airflow/airflow --untar
 
 # Create Airflow values file (Note: connections point to other namespaces)
-cat <<EOF > /tmp/airflow-values.yaml
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/airflow-values.yaml
 executor: KubernetesExecutor
 webserverSecretKey: $(openssl rand -hex 16)
 
@@ -393,7 +394,7 @@ EOF
 # Install from local folder
 helm install airflow ./airflow \
   --namespace airflow \
-  --values /tmp/airflow-values.yaml \
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/airflow-values.yaml \
   --timeout 10m
 
 # Verify
@@ -406,10 +407,9 @@ echo "Default credentials: admin / admin"
 ### 2.2 Install Marquez (Data Lineage)
 
 ```bash
-# Marquez doesn't have an official widespread helm chart, deploying via Manifests is standard.
-# However, you can save the yaml locally.
-
 cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Save manifest locally
 cat <<EOF > marquez.yaml
 apiVersion: apps/v1
 kind: Deployment
