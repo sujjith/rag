@@ -531,59 +531,50 @@ echo "Marquez API: http://localhost:30500"
 ### 2.3 Install Feast (Feature Store)
 
 ```bash
-cd /home/sujith/github/rag/00_MLOps/helm_charts
+# 1. Add Feast Helm Repo
+helm repo add feast-charts https://feast-helm-charts.storage.googleapis.com
+helm repo update
 
-# Save manifest locally
-cat <<EOF > feast.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: feast-feature-server
-  namespace: feast
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: feast
-  template:
-    metadata:
-      labels:
-        app: feast
-    spec:
-      containers:
-      - name: feast
-        image: feastdev/feature-server:latest
-        ports:
-        - containerPort: 6566
-        env:
-        - name: FEAST_USAGE
-          value: "false"
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 100m
-          limits:
-            memory: 512Mi
-            cpu: 250m
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: feast-feature-server
-  namespace: feast
-spec:
-  selector:
-    app: feast
-  ports:
-  - port: 6566
-    targetPort: 6566
+# 2. Download Chart to local directory
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+helm pull feast-charts/feast --untar
+
+# 3. Create Feast values file
+# We configure it to use our shared PostgreSQL and Redis
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/feast-values.yaml
+feature_server:
+  enabled: true
+  service:
+    type: NodePort
     nodePort: 30656
-  type: NodePort
+
+postgresql:
+  enabled: false
+
+redis:
+  enabled: false
+
+# Feast Configuration to point to our external infra
+# Note: Specific keys depend on the exact chart version, checking defaults is recommended.
+# This assumes standard external DB/Redis configuration pattern.
+externalPostgresql:
+  host: postgresql.postgresql.svc.cluster.local
+  port: 5432
+  database: feast
+  user: postgres
+  password: postgres123
+
+externalRedis:
+  host: redis-master.redis.svc.cluster.local
+  port: 6379
 EOF
 
-kubectl apply -f feast.yaml
+# 4. Install Feast
+helm install feast ./feast \
+  --namespace feast \
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/feast-values.yaml
 
-# Verify
+# 5. Verify
 kubectl get pods -n feast
 
 echo "Feast Feature Server: http://localhost:30656"
