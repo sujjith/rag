@@ -1,0 +1,15 @@
+postgresql:
+  enabled: false
+marquez:
+  db:
+    host: postgresql.postgresql.svc.cluster.local
+    port: 5432
+    name: marquez
+    user: postgres
+    password: postgres123
+service:
+  type: NodePort
+  api:
+    nodePort: 30500
+  web:
+    nodePort: 30501
