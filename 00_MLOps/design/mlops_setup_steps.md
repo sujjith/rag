@@ -851,26 +851,69 @@ echo "Username: admin"
 
 ### 5.2 Install KServe
 
+> **Note**: KServe requires Cert-Manager (installed via Helm) and uses Kustomize for installation.
+> Files are saved to `/home/sujith/github/rag/00_MLOps/helm_charts/kserve-kustomize/`
+
+#### 5.2.1 Install Cert-Manager (Prerequisite)
+
 ```bash
 cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Download Cert Manager
-wget https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+# Add Jetstack Helm Repository
+helm repo add jetstack https://charts.jetstack.io
+helm repo update
 
-# Install Cert Manager
-kubectl apply -f cert-manager.yaml
-kubectl wait --for=condition=ready pod -l app=cert-manager -n cert-manager --timeout=120s
+# Download Chart
+helm pull jetstack/cert-manager --untar
 
-# Download KServe
-wget https://github.com/kserve/kserve/releases/download/v0.12.0/kserve.yaml
-wget https://github.com/kserve/kserve/releases/download/v0.12.0/kserve-runtimes.yaml
+# Create values file
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/cert-manager-values.yaml
+crds:
+  enabled: true
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 25m
+  limits:
+    memory: 128Mi
+    cpu: 50m
+EOF
 
-# Install KServe
-kubectl apply -f kserve.yaml
-kubectl apply -f kserve-runtimes.yaml
+# Create namespace and install
+kubectl create namespace cert-manager 2>/dev/null || true
+helm install cert-manager ./cert-manager \
+  --namespace cert-manager \
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/cert-manager-values.yaml \
+  --timeout 5m
 
 # Verify
+kubectl get pods -n cert-manager
+```
+
+#### 5.2.2 Install KServe via Kustomize
+
+```bash
+# Create directory
+mkdir -p /home/sujith/github/rag/00_MLOps/helm_charts/kserve-kustomize
+cd /home/sujith/github/rag/00_MLOps/helm_charts/kserve-kustomize
+
+# Create namespace
+kubectl create namespace kserve 2>/dev/null || true
+
+# Download manifests
+kubectl kustomize "github.com/kserve/kserve/config/default?ref=v0.14.1" > kserve.yaml
+wget https://github.com/kserve/kserve/releases/download/v0.14.1/kserve-cluster-resources.yaml
+
+# Apply with server-side apply (required for large CRDs)
+kubectl apply --server-side --force-conflicts -f kserve.yaml
+kubectl apply --server-side --force-conflicts -f kserve-cluster-resources.yaml
+
+# Verify pods
 kubectl get pods -n kserve
+
+# Verify CRDs and runtimes
+kubectl get crd | grep kserve
+kubectl get clusterservingruntimes
 
 echo "KServe: Installed and ready for InferenceServices"
 ```
