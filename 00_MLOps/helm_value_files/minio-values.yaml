@@ -1,0 +1,27 @@
+mode: standalone
+replicas: 1
+persistence:
+  enabled: true
+  size: 50Gi
+resources:
+  requests:
+    memory: 512Mi
+    cpu: 250m
+  limits:
+    memory: 1Gi
+    cpu: 500m
+rootUser: minioadmin
+rootPassword: minioadmin123
+consoleIngress:
+  enabled: false
+buckets:
+  - name: mlflow-artifacts
+    policy: none
+  - name: airflow-logs
+    policy: none
+  - name: dvc-storage
+    policy: none
+  - name: feast-offline
+    policy: none
+  - name: kubeflow-pipelines
+    policy: none

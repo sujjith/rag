@@ -1,0 +1,15 @@
+
+{{- if or (not .Values.metrics) (not .Values.metrics.implementation) (eq "badgerdb" .Values.metrics.implementation) }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Release.Name }}
+  {{ template "iter8-controller.labels" . }}
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: {{ default "50Mi" .Values.metrics.badgerdb.storage }}
+  storageClassName: {{ default "standard" .Values.metrics.badgerdb.storageClassName }}
+{{- end }}

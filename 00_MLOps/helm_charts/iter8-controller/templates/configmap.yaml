@@ -1,0 +1,11 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}
+data:
+  config.yaml: |
+    {{ omit .Values "metrics" "abn" | toYaml | indent 4 | trim }}
+  metrics.yaml: |
+    {{ toYaml .Values.metrics | indent 4 | trim }}
+  abn.yaml: |
+    {{ toYaml .Values.abn | indent 4 | trim }}

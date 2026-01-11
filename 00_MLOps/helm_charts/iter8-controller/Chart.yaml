@@ -1,0 +1,19 @@
+apiVersion: v2
+appVersion: v1.1
+description: Iter8 controller controller
+home: https://iter8.tools
+icon: https://github.com/iter8-tools/iter8/raw/master/mkdocs/docs/images/favicon.png
+keywords:
+- Iter8
+- controller
+- experiment
+maintainers:
+- email: alan.cha1@ibm.com
+  name: Alan Cha
+- email: iter8-tools@gmail.com
+  name: Iter8
+name: controller
+sources:
+- https://github.com/iter8-tools/iter8
+type: application
+version: 1.1.0

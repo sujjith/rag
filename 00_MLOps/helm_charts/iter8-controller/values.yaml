@@ -1,0 +1,89 @@
+### Controller image
+image: iter8/iter8:1.1
+replicas: 1
+
+### default resync time for controller
+defaultResync: 15m
+
+### flag indicating whether installed as cluster scoped or (default) namespace scoped
+# clusterScoped: true
+
+### list of resource types to watch. For each resource type, an Iter8 shortname is mapped to a group, version, and resource.
+### to add types to watch, any shortname can be used
+### Where a condition is identified, it identifies the status condition on an object that should be inspected to determine 
+### if the resource is "ready".
+resourceTypes:
+  svc:
+    Group: ""
+    Version: v1
+    Resource: services
+  service:
+    Group: ""
+    Version: v1
+    Resource: services
+  cm:
+    Group: ""
+    Version: v1
+    Resource: configmaps
+  deploy:
+    Group: apps
+    Version: v1
+    Resource: deployments
+    conditions:
+    - Available
+  isvc:
+    Group: serving.kserve.io
+    Version: v1beta1
+    Resource: inferenceservices
+    conditions:
+    - Ready
+  vs:
+    Group: networking.istio.io
+    Version: v1beta1
+    Resource: virtualservices
+  httproute:
+    Group: gateway.networking.k8s.io
+    Version: v1beta1
+    Resource: httproutes
+
+### log level. Must be one of trace, debug, info, warning, error
+logLevel: info
+
+### Resource limits
+resources:
+  requests:
+    memory: "64Mi"
+    cpu: "250m"
+  limits:
+    memory: "128Mi"
+    cpu: "500m"
+
+### A/B/n
+abn:
+  # port for Iter8 gRPC service
+  port: 50051
+
+### Metrics
+metrics:
+  # port on which HTTP service (for Grafana) should be exposed
+  port: 8080
+  # implementation technology for metrics storage
+  # Valid values are badgerdb (default) and redis
+  # The set of properties used to configure the metrics store depend on the
+  # implementation selected. 
+  implementation: badgerdb
+  # default properties specific to BadgerDB
+  badgerdb:
+    # storage that should be created to support badger db
+    storage: 50Mi
+    storageClassName: standard
+    # location to mount storage
+    dir: /metrics
+  # default properties specific to Redis
+  redis:
+    address: redis:6379
+    # password: (default - none)
+    # username: (default - none)
+    # db: (default 0)
+
+

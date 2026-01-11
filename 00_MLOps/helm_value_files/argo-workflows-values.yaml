@@ -1,0 +1,19 @@
+server:
+  serviceType: NodePort
+  serviceNodePort: 30746
+  extraArgs:
+    - --auth-mode=server
+controller:
+  persistence:
+    archive: true
+    postgresql:
+      host: postgresql.postgresql.svc.cluster.local
+      port: 5432
+      database: argo
+      tableName: argo_workflows
+      userNameSecret:
+        name: argo-postgres-config
+        key: username
+      passwordSecret:
+        name: argo-postgres-config
+        key: password

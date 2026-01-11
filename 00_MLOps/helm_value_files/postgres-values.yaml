@@ -1,0 +1,22 @@
+auth:
+  postgresPassword: postgres123
+  database: mlops
+primary:
+  persistence:
+    enabled: true
+    size: 10Gi
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 1Gi
+      cpu: 500m
+  initdb:
+    scripts:
+      init-databases.sql: |
+        CREATE DATABASE airflow;
+        CREATE DATABASE mlflow;
+        CREATE DATABASE marquez;
+        CREATE DATABASE kubeflow;
+        CREATE DATABASE feast;
