@@ -495,3 +495,47 @@ argocd app get ml-models
 | Evidently | Airflow | Webhook/API trigger |
 | Git | Argo CD | Automatic sync on commits |
 | Argo CD | KServe | Kubernetes manifest sync |
+
+## MLOps Use Cases - Flow
+
+######################################################################################
+### Use Case 1: Customer Churn Prediction Pipeline
+Scenario: Build an end-to-end ML pipeline to predict customer churn, from raw data to deployed model.
+
+Tools Used
+Airflow → DVC → Great Expectations → Feast → Kubeflow → MLflow → KServe
+
+######################################################################################
+### Use Case 2: A/B Testing Model Versions (Iter8 + KServe)
+Scenario: Safely roll out a new model version with traffic splitting and automatic validation.
+
+Tools Used
+MLflow → KServe → Iter8
+
+######################################################################################
+### Use Case 3: Automated Retraining on Data Drift (Evidently + Airflow)
+Scenario: Detect when production data drifts from training data and trigger automatic retraining.
+
+Tools Used
+KServe → Evidently → Airflow → Kubeflow
+
+######################################################################################
+### Use Case 4: Full Data Lineage Tracking (OpenLineage + Marquez)
+Scenario: Track the complete journey of data from source to model prediction for compliance.
+
+Tools Used
+Airflow → OpenLineage → Marquez → Kubeflow → MLflow
+
+######################################################################################
+### Use Case 5: Model Fairness & Documentation (What-If Tool + Model Card)
+Scenario: Analyze model bias and generate compliance documentation before deployment.
+
+Tools Used
+Kubeflow → What-If Tool → Model Card Toolkit → MLflow
+
+######################################################################################
+### Use Case 6: GitOps Model Deployment (Argo CD)
+Scenario: Deploy models using GitOps - all changes tracked in Git.
+
+Tools Used
+MLflow → Git → Argo CD → KServe
