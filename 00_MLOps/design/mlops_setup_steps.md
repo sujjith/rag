@@ -971,63 +971,26 @@ echo "Iter8: Installed and ready for A/B testing"
 
 ## Phase 6: Monitoring Loop Tools
 
-### 6.1 Install Evidently AI
+### 6.1 Install Evidently AI (Local)
+
+> **Note**: Evidently AI is a Python library/CLI tool for ML model monitoring. 
+> It's best installed locally (no official Kubernetes deployment available).
 
 ```bash
-cd /home/sujith/github/rag/00_MLOps/helm_charts
+# Install Evidently AI
+pip install evidently
 
-# Create Evidently deployment
-cat <<EOF > evidently.yaml
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: evidently-collector
-  namespace: evidently
-spec:
-  replicas: 1
-  selector:
-    matchLabels:
-      app: evidently
-  template:
-    metadata:
-      labels:
-        app: evidently
-    spec:
-      containers:
-      - name: evidently
-        image: evidentlyai/evidently-service:latest
-        ports:
-        - containerPort: 8000
-        resources:
-          requests:
-            memory: 256Mi
-            cpu: 100m
-          limits:
-            memory: 512Mi
-            cpu: 250m
----
-apiVersion: v1
-kind: Service
-metadata:
-  name: evidently-collector
-  namespace: evidently
-spec:
-  selector:
-    app: evidently
-  ports:
-  - port: 8000
-    targetPort: 8000
-    nodePort: 30850
-  type: NodePort
-EOF
+# Create a workspace and launch the UI
+mkdir -p ~/evidently-workspace
+evidently ui --workspace ~/evidently-workspace --port 8000
 
-kubectl apply -f evidently.yaml
-
-# Verify
-kubectl get pods -n evidently
-
-echo "Evidently Collector: http://localhost:30850"
+# Access the UI at http://localhost:8000
 ```
+
+**Usage**:
+- Use Evidently in your ML pipelines to generate data drift and model performance reports
+- Reports are stored in the workspace and viewable in the UI
+- Integrate with Kubeflow/Airflow pipelines for automated monitoring
 
 ---
 
@@ -1075,8 +1038,10 @@ kubectl get pods -n argocd
 | **Airflow** | airflow | http://localhost:30800 | admin / admin |
 | **Marquez** | marquez | http://localhost:30501 | - |
 | **Feast** | feast | http://localhost:30656 | - |
-| **Argo Workflows** | argo | http://localhost:30746 | - |
+| **Argo Workflows** | argo-workflows | http://localhost:30746 | - |
 | **MLflow** | mlflow | http://localhost:30050 | - |
 | **Kubeflow Pipelines** | kubeflow | http://localhost:30880 | - |
-| **Argo CD** | argocd | http://localhost:30081 | admin / (see command) |
-| **Evidently** | evidently | http://localhost:30850 | - |
+| **Argo CD** | argocd | https://localhost:30444 | admin / (see command) |
+| **KServe** | kserve | (via InferenceServices) | - |
+| **Iter8** | iter8-system | (CLI-based) | - |
+| **Evidently** | (local) | http://localhost:8000 | - |
