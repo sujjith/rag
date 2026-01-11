@@ -1,6 +1,6 @@
 # Enterprise Airflow Use Cases
 
-A comprehensive collection of 35 DAGs across 12 phases covering enterprise Airflow patterns.
+A comprehensive collection of 53 DAGs across 18 phases covering enterprise Airflow patterns.
 
 ---
 
@@ -20,6 +20,12 @@ A comprehensive collection of 35 DAGs across 12 phases covering enterprise Airfl
 | 10 | Data Quality | 3 | Validation, drift detection |
 | 11 | Testing/CI-CD | 2 | Tests, deployment |
 | 12 | Observability | 3 | Metrics, logging, health |
+| 13 | Multi-DAG Orchestration | 3 | Cross-DAG dependencies, triggering |
+| 14 | Dataset-Driven Scheduling | 3 | Data-aware scheduling (2.4+) |
+| 15 | DAG Factory & Templates | 3 | Config-driven DAG generation |
+| 16 | Security & Secrets | 3 | Vault, RBAC, audit logging |
+| 17 | Data Lineage & Governance | 3 | OpenLineage, catalogs, compliance |
+| 18 | Advanced MLOps | 3 | Feature stores, A/B testing, retraining |
 
 ---
 
@@ -261,6 +267,194 @@ A comprehensive collection of 35 DAGs across 12 phases covering enterprise Airfl
 
 ---
 
+## Phase 13: Multi-DAG Orchestration
+
+**Objective:** Implement cross-DAG dependencies, triggering patterns, and complex workflow orchestration.
+
+| DAG | Description |
+|-----|-------------|
+| `phase13_01_external_task_sensor` | ExternalTaskSensor for upstream DAG completion, execution delta handling |
+| `phase13_02_trigger_dag_run` | TriggerDagRunOperator, pass configuration, conditional triggering |
+| `phase13_03_dag_dependencies` | Complex multi-DAG pipelines, shared state patterns, dependency graphs |
+
+**Key Concepts:**
+- `ExternalTaskSensor` with `execution_date_fn` for flexible date matching
+- `TriggerDagRunOperator` with `conf` parameter for dynamic configuration
+- Cross-DAG XCom communication patterns
+- Dependency graph visualization
+- Handling timezone and schedule alignment between DAGs
+- Patterns for parent-child DAG relationships
+- Failure propagation across DAG boundaries
+
+---
+
+## Phase 14: Dataset-Driven Scheduling (Airflow 2.4+)
+
+**Objective:** Implement data-aware scheduling using Airflow Datasets for event-driven pipelines.
+
+| DAG | Description |
+|-----|-------------|
+| `phase14_01_dataset_producer` | Define and emit Dataset events, outlet declarations |
+| `phase14_02_dataset_consumer` | Schedule based on Dataset updates, multi-dataset dependencies |
+| `phase14_03_dataset_patterns` | Fan-out patterns, conditional dataset triggers, dataset-driven ML pipelines |
+
+**Key Concepts:**
+- `Dataset` definition with URI patterns
+- Producer DAGs with `outlets` parameter
+- Consumer DAGs with `schedule=[dataset1, dataset2]`
+- Dataset UI visualization
+- Combining time-based and data-based scheduling
+- Dataset events for:
+  - File arrivals (S3, GCS, local)
+  - Database table updates
+  - API data refreshes
+  - ML model retraining triggers
+- Cross-team data contracts using Datasets
+
+---
+
+## Phase 15: DAG Factory & Templates
+
+**Objective:** Generate DAGs dynamically from configuration files for scalable, maintainable pipelines.
+
+| DAG | Description |
+|-----|-------------|
+| `phase15_01_yaml_dag_factory` | YAML-driven DAG generation, template substitution |
+| `phase15_02_jinja_templates` | Jinja2 templated DAGs, environment-specific configurations |
+| `phase15_03_dynamic_dag_patterns` | Multi-tenant DAGs, parameterized pipelines, inheritance patterns |
+
+**Key Concepts:**
+- Configuration-driven DAG generation patterns:
+  ```yaml
+  dag_id: etl_customer_data
+  schedule: "@daily"
+  tasks:
+    - id: extract
+      operator: PythonOperator
+      callable: extract_data
+    - id: transform
+      dependencies: [extract]
+  ```
+- `dag-factory` library integration
+- Jinja2 templates for DAG code
+- Environment variable substitution
+- Multi-tenant patterns (one config, many DAGs)
+- Inheritance and composition patterns
+- Validation of configuration files
+- Version control for DAG configurations
+- Dynamic task generation vs dynamic DAG generation trade-offs
+
+---
+
+## Phase 16: Security & Secrets Management
+
+**Objective:** Implement enterprise security patterns including secrets management, RBAC, and audit logging.
+
+| DAG | Description |
+|-----|-------------|
+| `phase16_01_secrets_backend` | HashiCorp Vault, AWS Secrets Manager, Azure Key Vault integration |
+| `phase16_02_rbac_patterns` | Role-based access control, DAG-level permissions, team isolation |
+| `phase16_03_audit_compliance` | Audit logging, compliance reports, access tracking |
+
+**Key Concepts:**
+- Secrets Backend configuration:
+  - HashiCorp Vault: `VaultBackend`
+  - AWS Secrets Manager: `SecretsManagerBackend`
+  - GCP Secret Manager: `CloudSecretManagerBackend`
+- Secrets rotation patterns without DAG restarts
+- RBAC configuration:
+  - DAG-level permissions
+  - Resource-based access control
+  - Team/department isolation
+- Audit logging:
+  - Task execution audit trail
+  - Variable/Connection access logging
+  - User action tracking
+- Compliance patterns:
+  - PII data handling
+  - SOC2 audit requirements
+  - GDPR data lineage
+- Secure credential injection to tasks
+- Encryption at rest and in transit
+
+---
+
+## Phase 17: Data Lineage & Governance
+
+**Objective:** Track data lineage, integrate with data catalogs, and implement governance workflows.
+
+| DAG | Description |
+|-----|-------------|
+| `phase17_01_openlineage` | OpenLineage integration, automatic lineage capture, custom facets |
+| `phase17_02_data_catalog` | DataHub/Amundsen/Unity Catalog integration, metadata publishing |
+| `phase17_03_governance_workflows` | Data classification, retention policies, access reviews |
+
+**Key Concepts:**
+- OpenLineage integration:
+  - Automatic lineage from operators (Spark, BigQuery, Snowflake)
+  - Custom lineage events with facets
+  - Lineage visualization in Marquez
+- Data Catalog integration patterns:
+  - Publish dataset metadata to DataHub
+  - Sync Airflow DAGs to catalog
+  - Tag-based data discovery
+- Governance workflows:
+  - Data classification tagging (PII, Confidential, Public)
+  - Retention policy enforcement
+  - Access review automation
+- Impact analysis:
+  - Downstream dependency tracking
+  - Change propagation alerts
+  - Schema change notifications
+- Data contracts:
+  - Schema validation at boundaries
+  - SLA enforcement between teams
+  - Breaking change detection
+
+---
+
+## Phase 18: Advanced MLOps
+
+**Objective:** Implement production ML operations including feature stores, A/B testing, and automated retraining.
+
+| DAG | Description |
+|-----|-------------|
+| `phase18_01_feature_store` | Feast/Tecton integration, feature computation, online/offline serving |
+| `phase18_02_ab_testing` | Experiment orchestration, traffic splitting, statistical analysis |
+| `phase18_03_auto_retraining` | Drift-triggered retraining, champion/challenger, model promotion |
+
+**Key Concepts:**
+- Feature Store integration:
+  - Feast feature definitions and materialization
+  - Batch feature computation pipelines
+  - Online feature serving triggers
+  - Feature freshness monitoring
+- A/B Testing orchestration:
+  - Experiment configuration management
+  - Traffic allocation and routing
+  - Statistical significance calculation
+  - Winner deployment automation
+- Automated Retraining:
+  - Drift detection triggers (data drift, model drift)
+  - Champion/Challenger patterns
+  - Shadow mode deployment
+  - Gradual rollout (canary → production)
+- Model lifecycle:
+  ```
+  Train → Validate → Register → Stage → Canary → Production
+  ```
+- Integration with ML platforms:
+  - MLflow model registry
+  - SageMaker endpoints
+  - Vertex AI deployment
+  - Seldon/KServe orchestration
+- Feedback loop pipelines:
+  - Ground truth collection
+  - Performance monitoring
+  - Bias detection and alerting
+
+---
+
 ## Quick Start
 
 ```bash
@@ -289,6 +483,12 @@ docker compose up -d
 | 10 | `great-expectations` (optional) |
 | 11 | `pytest`, CI/CD platform |
 | 12 | Prometheus (optional), logging backend |
+| 13 | None (core Airflow 2.0+) |
+| 14 | Airflow 2.4+ (Dataset support) |
+| 15 | `dag-factory`, `pyyaml`, `jinja2` |
+| 16 | `apache-airflow-providers-hashicorp`, `apache-airflow-providers-amazon` (Secrets Manager) |
+| 17 | `openlineage-airflow`, `datahub-airflow-plugin` (optional) |
+| 18 | `feast`, `mlflow`, `scipy` (statistical tests) |
 
 ---
 
@@ -340,10 +540,36 @@ dags/
 ├── phase11/                 # Testing/CI-CD
 │   ├── 01_dag_testing.py
 │   └── 02_cicd_patterns.py
-└── phase12/                 # Observability
-    ├── 01_metrics_monitoring.py
-    ├── 02_logging_tracing.py
-    └── 03_health_checks.py
+├── phase12/                 # Observability
+│   ├── 01_metrics_monitoring.py
+│   ├── 02_logging_tracing.py
+│   └── 03_health_checks.py
+├── phase13/                 # Multi-DAG Orchestration
+│   ├── 01_external_task_sensor.py
+│   ├── 02_trigger_dag_run.py
+│   └── 03_dag_dependencies.py
+├── phase14/                 # Dataset-Driven Scheduling
+│   ├── 01_dataset_producer.py
+│   ├── 02_dataset_consumer.py
+│   └── 03_dataset_patterns.py
+├── phase15/                 # DAG Factory & Templates
+│   ├── 01_yaml_dag_factory.py
+│   ├── 02_jinja_templates.py
+│   ├── 03_dynamic_dag_patterns.py
+│   └── configs/
+│       └── dag_definitions.yaml
+├── phase16/                 # Security & Secrets
+│   ├── 01_secrets_backend.py
+│   ├── 02_rbac_patterns.py
+│   └── 03_audit_compliance.py
+├── phase17/                 # Data Lineage & Governance
+│   ├── 01_openlineage.py
+│   ├── 02_data_catalog.py
+│   └── 03_governance_workflows.py
+└── phase18/                 # Advanced MLOps
+    ├── 01_feature_store.py
+    ├── 02_ab_testing.py
+    └── 03_auto_retraining.py
 ```
 
 ---
@@ -359,13 +585,23 @@ Learn configuration management and ML integration.
 **Advanced (Phases 7-9):**
 Master resilience patterns, notifications, and external integrations.
 
-**Enterprise (Phases 10-12):**
+**Enterprise Foundation (Phases 10-12):**
 Implement data quality, testing, CI/CD, and observability.
+
+**Enterprise Orchestration (Phases 13-15):**
+Master multi-DAG patterns, dataset-driven scheduling, and scalable DAG generation with factories.
+
+**Enterprise Security & Governance (Phases 16-17):**
+Implement secrets management, RBAC, audit logging, data lineage, and governance workflows.
+
+**Enterprise MLOps (Phase 18):**
+Build production ML operations with feature stores, A/B testing, and automated retraining pipelines.
 
 ---
 
 ## Production Checklist
 
+### Core Operations (Phases 1-12)
 - [ ] Retry strategies configured for all external calls
 - [ ] Circuit breakers for unreliable services
 - [ ] Email/Slack notifications for failures
@@ -379,3 +615,27 @@ Implement data quality, testing, CI/CD, and observability.
 - [ ] Structured logging with correlation IDs
 - [ ] Health checks for dependencies
 - [ ] SLA definitions and monitoring
+
+### Orchestration (Phases 13-15)
+- [ ] Cross-DAG dependencies documented
+- [ ] ExternalTaskSensor timeouts configured
+- [ ] Dataset producers/consumers mapped
+- [ ] DAG factory configurations validated
+- [ ] Multi-tenant isolation verified
+
+### Security & Governance (Phases 16-17)
+- [ ] Secrets backend configured (Vault/AWS/GCP)
+- [ ] No hardcoded credentials in DAGs
+- [ ] RBAC roles defined per team
+- [ ] Audit logging enabled
+- [ ] OpenLineage integration active
+- [ ] Data classification tags applied
+- [ ] Retention policies automated
+
+### MLOps (Phase 18)
+- [ ] Feature store materialization scheduled
+- [ ] Model drift detection thresholds set
+- [ ] Champion/Challenger framework in place
+- [ ] A/B test statistical significance defined
+- [ ] Automated retraining triggers configured
+- [ ] Model rollback procedures documented
