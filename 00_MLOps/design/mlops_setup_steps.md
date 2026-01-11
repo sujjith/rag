@@ -95,7 +95,22 @@ curl https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
 helm version
 ```
 
-### 0.3 Create Namespaces (One Per Tool)
+### 0.3 Setup Chart Directory
+
+```bash
+# Create directory for local helm charts
+mkdir -p /home/sujith/github/rag/00_MLOps/helm_charts
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Add Repositories (we need these to pull the charts)
+helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
+helm repo add minio https://charts.min.io/
+helm repo add bitnami https://charts.bitnami.com/bitnami
+helm repo add apache-airflow https://airflow.apache.org
+helm repo update
+```
+
+### 0.4 Create Namespaces
 
 ```bash
 # Infrastructure Layer
@@ -133,12 +148,13 @@ kubectl get namespaces
 ### 1.1 Install NGINX Ingress Controller
 
 ```bash
-# Add ingress-nginx repo
-helm repo add ingress-nginx https://kubernetes.github.io/ingress-nginx
-helm repo update
+cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Install NGINX Ingress (creates its own namespace)
-helm install ingress-nginx ingress-nginx/ingress-nginx \
+# Download Chart
+helm pull ingress-nginx/ingress-nginx --untar
+
+# Install from local folder
+helm install ingress-nginx ./ingress-nginx \
   --namespace ingress-nginx \
   --create-namespace \
   --set controller.service.type=NodePort \
@@ -152,9 +168,10 @@ kubectl get pods -n ingress-nginx
 ### 1.2 Install MinIO (Object Storage)
 
 ```bash
-# Add MinIO repo
-helm repo add minio https://charts.min.io/
-helm repo update
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Download Chart
+helm pull minio/minio --untar
 
 # Create MinIO values file
 cat <<EOF > /tmp/minio-values.yaml
@@ -187,8 +204,8 @@ buckets:
     policy: none
 EOF
 
-# Install MinIO
-helm install minio minio/minio \
+# Install from local folder
+helm install minio ./minio \
   --namespace minio \
   --values /tmp/minio-values.yaml
 
@@ -203,9 +220,10 @@ echo "MinIO Console: http://minio.minio.svc.cluster.local:9001"
 ### 1.3 Install PostgreSQL (Shared Database)
 
 ```bash
-# Add Bitnami repo
-helm repo add bitnami https://charts.bitnami.com/bitnami
-helm repo update
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Download Chart
+helm pull bitnami/postgresql --untar
 
 # Create PostgreSQL values file
 cat <<EOF > /tmp/postgres-values.yaml
@@ -233,8 +251,8 @@ primary:
         CREATE DATABASE feast;
 EOF
 
-# Install PostgreSQL
-helm install postgresql bitnami/postgresql \
+# Install from local folder
+helm install postgresql ./postgresql \
   --namespace postgresql \
   --values /tmp/postgres-values.yaml
 
@@ -248,6 +266,11 @@ echo "PostgreSQL: postgresql://postgres:postgres123@postgresql.postgresql.svc.cl
 ### 1.4 Install Redis (Cache)
 
 ```bash
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Download Chart
+helm pull bitnami/redis --untar
+
 # Create Redis values file
 cat <<EOF > /tmp/redis-values.yaml
 architecture: standalone
@@ -266,8 +289,8 @@ master:
       cpu: 250m
 EOF
 
-# Install Redis
-helm install redis bitnami/redis \
+# Install from local folder
+helm install redis ./redis \
   --namespace redis \
   --values /tmp/redis-values.yaml
 
@@ -301,11 +324,12 @@ kubectl get pods -n ingress-nginx
 ### 2.1 Install Apache Airflow
 
 ```bash
-# Add Apache Airflow repo
-helm repo add apache-airflow https://airflow.apache.org
-helm repo update
+cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Create Airflow values file
+# Download Chart
+helm pull apache-airflow/airflow --untar
+
+# Create Airflow values file (Note: connections point to other namespaces)
 cat <<EOF > /tmp/airflow-values.yaml
 executor: KubernetesExecutor
 webserverSecretKey: $(openssl rand -hex 16)
@@ -366,8 +390,8 @@ scheduler:
       cpu: 500m
 EOF
 
-# Install Airflow
-helm install airflow apache-airflow/airflow \
+# Install from local folder
+helm install airflow ./airflow \
   --namespace airflow \
   --values /tmp/airflow-values.yaml \
   --timeout 10m
@@ -382,8 +406,11 @@ echo "Default credentials: admin / admin"
 ### 2.2 Install Marquez (Data Lineage)
 
 ```bash
-# Create Marquez deployment
-cat <<EOF | kubectl apply -f -
+# Marquez doesn't have an official widespread helm chart, deploying via Manifests is standard.
+# However, you can save the yaml locally.
+
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+cat <<EOF > marquez.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -492,6 +519,8 @@ spec:
   type: NodePort
 EOF
 
+kubectl apply -f marquez.yaml
+
 # Verify
 kubectl get pods -n marquez
 
@@ -502,8 +531,10 @@ echo "Marquez API: http://localhost:30500"
 ### 2.3 Install Feast (Feature Store)
 
 ```bash
-# Create Feast deployment
-cat <<EOF | kubectl apply -f -
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Save manifest locally
+cat <<EOF > feast.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -550,6 +581,8 @@ spec:
   type: NodePort
 EOF
 
+kubectl apply -f feast.yaml
+
 # Verify
 kubectl get pods -n feast
 
@@ -592,8 +625,13 @@ echo "Great Expectations: Installed as Python library"
 ### 3.1 Install Argo Workflows
 
 ```bash
-# Install Argo Workflows
-kubectl apply -n argo -f https://github.com/argoproj/argo-workflows/releases/download/v3.5.2/install.yaml
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Download Manifest
+wget https://github.com/argoproj/argo-workflows/releases/download/v3.5.2/install.yaml -O argo-workflows-install.yaml
+
+# Install
+kubectl apply -n argo -f argo-workflows-install.yaml
 
 # Patch to use NodePort
 kubectl patch svc argo-server -n argo -p '{"spec": {"type": "NodePort", "ports": [{"port": 2746, "nodePort": 30746}]}}'
@@ -614,8 +652,10 @@ echo "Argo Workflows UI: http://localhost:30746"
 ### 4.1 Install MLflow
 
 ```bash
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
 # Create MLflow deployment
-cat <<EOF | kubectl apply -f -
+cat <<EOF > mlflow.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -672,6 +712,8 @@ spec:
   type: NodePort
 EOF
 
+kubectl apply -f mlflow.yaml
+
 # Verify
 kubectl get pods -n mlflow
 
@@ -681,13 +723,25 @@ echo "MLflow UI: http://localhost:30050"
 ### 4.2 Install Kubeflow Pipelines
 
 ```bash
-# Install Kubeflow Pipelines (standalone - creates 'kubeflow' namespace)
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# NOTE: Kubeflow is complex and pulls many resources. 
+# We will download the kustomize manifests.
 export PIPELINE_VERSION=2.0.5
 
-kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION"
+# We can't easily "download" a kustomize build to a single file without running kustomize build.
+# We will pull the resources and pipe to file.
+
+# Cluster Scoped
+kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION" > kubeflow-cluster-scoped.yaml
+# Env
+kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic-pns?ref=$PIPELINE_VERSION" > kubeflow-platform-agnostic.yaml
+
+# Apply local files
+kubectl apply -f kubeflow-cluster-scoped.yaml
 kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
 
-kubectl apply -k "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic-pns?ref=$PIPELINE_VERSION"
+kubectl apply -f kubeflow-platform-agnostic.yaml
 
 # Wait for pods to be ready
 kubectl wait --for=condition=ready pod -l app=ml-pipeline -n kubeflow --timeout=300s
@@ -708,9 +762,6 @@ These are Python libraries:
 ```bash
 pip install witwidget              # What-If Tool
 pip install model-card-toolkit     # Model Card Toolkit
-
-echo "What-If Tool: Installed as Python library (witwidget)"
-echo "Model Card Toolkit: Installed as Python library (model-card-toolkit)"
 ```
 
 ---
@@ -720,8 +771,13 @@ echo "Model Card Toolkit: Installed as Python library (model-card-toolkit)"
 ### 5.1 Install Argo CD
 
 ```bash
-# Install Argo CD (uses 'argocd' namespace)
-kubectl apply -n argocd -f https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Download Manifest
+wget https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml -O argo-cd-install.yaml
+
+# Install
+kubectl apply -n argocd -f argo-cd-install.yaml
 
 # Patch to use NodePort
 kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort", "ports": [{"port": 443, "nodePort": 30443, "name": "https"}, {"port": 80, "nodePort": 30081, "name": "http"}]}}'
@@ -740,17 +796,22 @@ echo "Username: admin"
 ### 5.2 Install KServe
 
 ```bash
-# Install cert-manager (creates 'cert-manager' namespace)
-kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Wait for cert-manager
+# Download Cert Manager
+wget https://github.com/cert-manager/cert-manager/releases/download/v1.13.0/cert-manager.yaml
+
+# Install Cert Manager
+kubectl apply -f cert-manager.yaml
 kubectl wait --for=condition=ready pod -l app=cert-manager -n cert-manager --timeout=120s
 
-# Install KServe (creates 'kserve' namespace)
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.12.0/kserve.yaml
+# Download KServe
+wget https://github.com/kserve/kserve/releases/download/v0.12.0/kserve.yaml
+wget https://github.com/kserve/kserve/releases/download/v0.12.0/kserve-runtimes.yaml
 
-# Install KServe built-in serving runtimes
-kubectl apply -f https://github.com/kserve/kserve/releases/download/v0.12.0/kserve-runtimes.yaml
+# Install KServe
+kubectl apply -f kserve.yaml
+kubectl apply -f kserve-runtimes.yaml
 
 # Verify
 kubectl get pods -n kserve
@@ -761,8 +822,13 @@ echo "KServe: Installed and ready for InferenceServices"
 ### 5.3 Install Iter8
 
 ```bash
-# Install Iter8 (creates 'iter8-system' namespace)
-kubectl apply -f https://github.com/iter8-tools/iter8/releases/latest/download/install.yaml
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
+# Download Iter8
+wget https://github.com/iter8-tools/iter8/releases/latest/download/install.yaml -O iter8-install.yaml
+
+# Install
+kubectl apply -f iter8-install.yaml
 
 # Verify
 kubectl get pods -n iter8-system
@@ -777,8 +843,10 @@ echo "Iter8: Installed and ready for A/B testing"
 ### 6.1 Install Evidently AI
 
 ```bash
+cd /home/sujith/github/rag/00_MLOps/helm_charts
+
 # Create Evidently deployment
-cat <<EOF | kubectl apply -f -
+cat <<EOF > evidently.yaml
 apiVersion: apps/v1
 kind: Deployment
 metadata:
@@ -822,8 +890,7 @@ spec:
   type: NodePort
 EOF
 
-# Alternative: Evidently is commonly used as a Python library
-pip install evidently
+kubectl apply -f evidently.yaml
 
 # Verify
 kubectl get pods -n evidently
@@ -867,15 +934,6 @@ kubectl get pods -n kubeflow
 
 echo -e "\n=== argocd ==="
 kubectl get pods -n argocd
-
-echo -e "\n=== kserve ==="
-kubectl get pods -n kserve
-
-echo -e "\n=== iter8-system ==="
-kubectl get pods -n iter8-system
-
-echo -e "\n=== evidently ==="
-kubectl get pods -n evidently
 ```
 
 ### 7.2 Service Endpoints Summary
@@ -891,61 +949,3 @@ kubectl get pods -n evidently
 | **Kubeflow Pipelines** | kubeflow | http://localhost:30880 | - |
 | **Argo CD** | argocd | http://localhost:30081 | admin / (see command) |
 | **Evidently** | evidently | http://localhost:30850 | - |
-
----
-
-## Troubleshooting
-
-### Common Issues
-
-| Issue | Solution |
-|-------|----------|
-| Pod stuck in Pending | Check resources: `kubectl describe pod <pod> -n <namespace>` |
-| Pod CrashLoopBackOff | Check logs: `kubectl logs <pod> -n <namespace>` |
-| Service not accessible | Check NodePort: `kubectl get svc -n <namespace>` |
-| Database connection failed | Verify PostgreSQL is running in 'postgresql' namespace |
-| Storage issues | Check PVC status: `kubectl get pvc -n <namespace>` |
-
-### Useful Commands
-
-```bash
-# Check cluster resources
-kubectl top nodes
-kubectl top pods -A
-
-# Check events
-kubectl get events -A --sort-by='.lastTimestamp'
-
-# Restart a deployment
-kubectl rollout restart deployment <name> -n <namespace>
-
-# Check logs
-kubectl logs -f <pod-name> -n <namespace>
-
-# Port forward for debugging
-kubectl port-forward svc/<service> <local-port>:<service-port> -n <namespace>
-```
-
----
-
-## Resource Usage Estimate
-
-| Component | Namespace | Memory | CPU |
-|-----------|-----------|--------|-----|
-| K3s system | kube-system | 1 GB | 0.5 |
-| MinIO | minio | 1 GB | 0.5 |
-| PostgreSQL | postgresql | 1 GB | 0.5 |
-| Redis | redis | 0.5 GB | 0.25 |
-| Airflow | airflow | 2 GB | 1.0 |
-| Marquez | marquez | 0.5 GB | 0.25 |
-| Feast | feast | 0.5 GB | 0.25 |
-| Argo Workflows | argo | 0.5 GB | 0.25 |
-| MLflow | mlflow | 0.5 GB | 0.25 |
-| Kubeflow Pipelines | kubeflow | 3 GB | 1.0 |
-| Argo CD | argocd | 1 GB | 0.5 |
-| KServe | kserve | 1 GB | 0.5 |
-| Iter8 | iter8-system | 0.25 GB | 0.1 |
-| Evidently | evidently | 0.5 GB | 0.25 |
-| **Total** | | **~13 GB** | **~5.5** |
-
-Your system (31 GB RAM, 8 CPU) has sufficient resources with ~18 GB headroom.
