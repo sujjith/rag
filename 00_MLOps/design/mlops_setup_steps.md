@@ -920,17 +920,49 @@ echo "KServe: Installed and ready for InferenceServices"
 
 ### 5.3 Install Iter8
 
+> **Note**: Iter8 is installed via Helm chart for A/B testing and progressive delivery.
+
 ```bash
 cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Download Iter8
-wget https://github.com/iter8-tools/iter8/releases/latest/download/install.yaml -O iter8-install.yaml
+# Add Iter8 Helm Repository
+helm repo add iter8 https://iter8-tools.github.io/iter8/ --force-update
+helm repo update
 
-# Install
-kubectl apply -f iter8-install.yaml
+# Download Chart
+helm pull iter8/controller --untar
 
-# Verify
+# Create values file (uses local-path StorageClass for persistence)
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/iter8-values.yaml
+clusterScoped: true
+
+# Use local-path StorageClass for persistence
+metrics:
+  badgerdb:
+    storage: 100Mi
+    storageClassName: local-path
+    dir: /metrics
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 100m
+EOF
+
+# Create namespace
+kubectl create namespace iter8-system 2>/dev/null || true
+
+# Install from local folder
+helm install iter8 ./iter8-controller \
+  --namespace iter8-system \
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/iter8-values.yaml
+
+# Verify pods and PVC
 kubectl get pods -n iter8-system
+kubectl get pvc -n iter8-system
 
 echo "Iter8: Installed and ready for A/B testing"
 ```

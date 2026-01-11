@@ -1,0 +1,18 @@
+# Iter8 Controller Values
+clusterScoped: true
+
+# Use local-path StorageClass for persistence
+# Template uses .Values.metrics.badgerdb.storageClassName
+metrics:
+  badgerdb:
+    storage: 100Mi
+    storageClassName: local-path
+    dir: /metrics
+
+resources:
+  requests:
+    memory: 64Mi
+    cpu: 50m
+  limits:
+    memory: 128Mi
+    cpu: 100m
