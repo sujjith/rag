@@ -1,5 +1,6 @@
 executor: KubernetesExecutor
-webserverSecretKey: 3f330c91fe80503a5751b6c3a84d00e3
+webserverSecretKey: e386047607184aded9252df65f90caa2
+
 # Use external PostgreSQL (in 'postgresql' namespace)
 postgresql:
   enabled: false
@@ -11,6 +12,7 @@ data:
     host: postgresql.postgresql.svc.cluster.local
     port: 5432
     db: airflow
+
 # Use MinIO for logs (in 'minio' namespace)
 logs:
   persistence:
@@ -20,14 +22,17 @@ config:
     remote_logging: 'True'
     remote_base_log_folder: 's3://airflow-logs'
     remote_log_conn_id: 'minio_default'
+
 # Enable OpenLineage (connects to Marquez in 'marquez' namespace)
-extraEnv:
+# CHANGED: 'extraEnv' -> 'env'
+env:
   - name: AIRFLOW__LINEAGE__BACKEND
     value: "openlineage.lineage_backend.OpenLineageBackend"
   - name: OPENLINEAGE_URL
     value: "http://marquez-api.marquez.svc.cluster.local:5000"
   - name: OPENLINEAGE_NAMESPACE
     value: "airflow"
+
 # Resource limits
 webserver:
   resources:
