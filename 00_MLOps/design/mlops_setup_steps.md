@@ -782,23 +782,70 @@ pip install model-card-toolkit     # Model Card Toolkit
 ```bash
 cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# Download Manifest
-wget https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml -O argo-cd-install.yaml
+# Add Argo Helm Repository
+helm repo add argo https://argoproj.github.io/argo-helm
+helm repo update
 
-# Install
-kubectl apply -n argocd -f argo-cd-install.yaml
+# Download Chart
+helm pull argo/argo-cd --untar
 
-# Patch to use NodePort
-kubectl patch svc argocd-server -n argocd -p '{"spec": {"type": "NodePort", "ports": [{"port": 443, "nodePort": 30443, "name": "https"}, {"port": 80, "nodePort": 30081, "name": "http"}]}}'
+# Create values file
+cat <<EOF > /home/sujith/github/rag/00_MLOps/helm_value_files/argocd-values.yaml
+server:
+  service:
+    type: NodePort
+    nodePortHttp: 30081
+    nodePortHttps: 30444
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 250m
+
+controller:
+  resources:
+    requests:
+      memory: 256Mi
+      cpu: 100m
+    limits:
+      memory: 512Mi
+      cpu: 250m
+
+repoServer:
+  resources:
+    requests:
+      memory: 128Mi
+      cpu: 50m
+    limits:
+      memory: 256Mi
+      cpu: 100m
+
+redis:
+  resources:
+    requests:
+      memory: 64Mi
+      cpu: 25m
+    limits:
+      memory: 128Mi
+      cpu: 50m
+EOF
+
+# Install from local folder
+helm install argocd ./argo-cd \
+  --namespace argocd \
+  --values /home/sujith/github/rag/00_MLOps/helm_value_files/argocd-values.yaml \
+  --timeout 5m
+
+# Verify
+kubectl get pods -n argocd
 
 # Get initial admin password
 kubectl -n argocd get secret argocd-initial-admin-secret -o jsonpath="{.data.password}" | base64 -d
 echo ""
 
-# Verify
-kubectl get pods -n argocd
-
-echo "Argo CD UI: http://localhost:30081"
+echo "Argo CD UI: https://localhost:30444 or http://localhost:30081"
 echo "Username: admin"
 ```
 
