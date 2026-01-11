@@ -713,37 +713,55 @@ echo "MLflow UI: http://localhost:30050"
 
 ### 4.2 Install Kubeflow Pipelines
 
+> **Note**: Kubeflow Pipelines images have migrated from `gcr.io` to `ghcr.io` starting with version 2.4.0.
+> Always use the `master` branch or a stable release tag >= 2.4.0 for latest images.
+> The default artifact store is now SeaweedFS (S3-compatible) instead of MinIO.
+
 ```bash
 cd /home/sujith/github/rag/00_MLOps/helm_charts
 
-# NOTE: Kubeflow is complex and pulls many resources. 
-# We will download the kustomize manifests.
-export PIPELINE_VERSION=2.0.5
+# Create kubeflow namespace if not exists
+kubectl create namespace kubeflow 2>/dev/null || true
 
-# We can't easily "download" a kustomize build to a single file without running kustomize build.
-# We will pull the resources and pipe to file.
+# Set environment - use emissary executor (recommended for most clusters)
+export KFP_ENV=platform-agnostic-emissary
 
-# Cluster Scoped
-kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=$PIPELINE_VERSION" > kubeflow-cluster-scoped.yaml
-# Env
-kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/env/platform-agnostic-pns?ref=$PIPELINE_VERSION" > kubeflow-platform-agnostic.yaml
-
-# Apply local files
+# Download and apply cluster-scoped resources (CRDs, ClusterRoles, etc.)
+kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/cluster-scoped-resources?ref=master" > kubeflow-cluster-scoped.yaml
 kubectl apply -f kubeflow-cluster-scoped.yaml
-kubectl wait --for condition=established --timeout=60s crd/applications.app.k8s.io
 
+# Wait for CRD to be established
+kubectl wait crd/applications.app.k8s.io --for condition=established --timeout=60s
+
+# Download and apply namespace-scoped resources
+kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/env/${KFP_ENV}?ref=master" > kubeflow-platform-agnostic.yaml
 kubectl apply -f kubeflow-platform-agnostic.yaml
 
-# Wait for pods to be ready
-kubectl wait --for=condition=ready pod -l app=ml-pipeline -n kubeflow --timeout=300s
+# Wait for all pods to be ready (may take 5-10 minutes on first install)
+kubectl wait pods -l application-crd-id=kubeflow-pipelines -n kubeflow --for condition=Ready --timeout=600s
 
-# Patch to use NodePort
+# Patch to use NodePort for external access
 kubectl patch svc ml-pipeline-ui -n kubeflow -p '{"spec": {"type": "NodePort", "ports": [{"port": 80, "nodePort": 30880}]}}'
 
-# Verify
+# Verify all pods are running
 kubectl get pods -n kubeflow
 
+# Verify UI is accessible
+curl -s -o /dev/null -w "HTTP Status: %{http_code}\n" http://localhost:30880
+
 echo "Kubeflow Pipelines UI: http://localhost:30880"
+```
+
+**Uninstall Kubeflow Pipelines**:
+```bash
+# Delete namespace-scoped resources
+kubectl kustomize "github.com/kubeflow/pipelines/manifests/kustomize/env/${KFP_ENV}?ref=master" | kubectl delete -f -
+
+# Delete cluster-scoped resources
+kubectl delete -f kubeflow-cluster-scoped.yaml
+
+# Delete namespace
+kubectl delete namespace kubeflow
 ```
 
 ### 4.3 What-If Tool & Model Card Toolkit
