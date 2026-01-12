@@ -13,6 +13,12 @@ data:
     port: 5432
     db: airflow
 
+images:
+  airflow:
+    repository: airflow-custom
+    tag: "3.0.2"
+    pullPolicy: Never  # Use local image
+
 # Use MinIO for logs (in 'minio' namespace)
 logs:
   persistence:

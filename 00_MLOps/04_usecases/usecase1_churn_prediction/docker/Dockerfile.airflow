@@ -1,0 +1,13 @@
+# Custom Airflow image with additional Python dependencies
+# for running MLOps DAGs with pandas, boto3, sqlalchemy, etc.
+
+FROM apache/airflow:3.0.2
+
+# Install additional Python packages required by DAGs
+# Using versions compatible with Python 3.12
+RUN pip install --no-cache-dir \
+    pandas>=2.2.0 \
+    pyarrow>=18.0.0 \
+    boto3>=1.35.0 \
+    sqlalchemy>=2.0.0 \
+    psycopg2-binary>=2.9.9
