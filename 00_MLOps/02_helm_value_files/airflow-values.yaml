@@ -65,3 +65,17 @@ apiServer:
       - name: api-server
         port: 8080
         nodePort: 30800
+
+# Git-sync for DAGs
+dags:
+  gitSync:
+    enabled: true
+    repo: https://github.com/sujjith/rag.git
+    branch: main
+    ref: main
+    depth: 1
+    maxFailures: 3
+    subPath: "00_MLOps/04_usecases/usecase1_churn_prediction/airflow/dags"
+    period: 60s
+    # Credentials secret (we'll create this)
+    credentialsSecret: git-credentials
