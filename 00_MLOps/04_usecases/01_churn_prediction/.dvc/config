@@ -1,7 +1,0 @@
-[core]
-    remote = minio
-['remote "minio"']
-    url = s3://dvc-data
-    endpointurl = http://localhost:30900
-    access_key_id = minioadmin
-    secret_access_key = minioadmin123
