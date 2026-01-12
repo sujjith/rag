@@ -46,8 +46,8 @@ def extract_customer_data(**context):
     
     df = pd.read_sql(query, engine)
     
-    # Save to local path for next task
-    output_path = "/tmp/customers.parquet"
+    # Save to shared storage (mounted PVC for KubernetesExecutor)
+    output_path = "/shared/customers.parquet"
     df.to_parquet(output_path, index=False)
     
     print(f"Extracted {len(df)} customer records")

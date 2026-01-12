@@ -85,3 +85,27 @@ dags:
     period: 60s
     # Credentials secret (we'll create this)
     credentialsSecret: git-credentials
+
+# Shared storage for KubernetesExecutor task pods
+workers:
+  extraVolumes:
+    - name: shared-data
+      persistentVolumeClaim:
+        claimName: airflow-shared-data
+  extraVolumeMounts:
+    - name: shared-data
+      mountPath: /shared
+
+# Create PVC via Helm (no separate kubectl apply needed)
+extraManifests:
+  - apiVersion: v1
+    kind: PersistentVolumeClaim
+    metadata:
+      name: airflow-shared-data
+    spec:
+      accessModes:
+        - ReadWriteMany
+      resources:
+        requests:
+          storage: 5Gi
+      storageClassName: local-path
