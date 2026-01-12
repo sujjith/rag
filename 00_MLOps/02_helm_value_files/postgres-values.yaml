@@ -1,7 +1,12 @@
 auth:
   postgresPassword: postgres123
   database: mlops
+
 primary:
+  service:
+    type: NodePort
+    nodePorts:
+      postgresql: 30432
   persistence:
     enabled: true
     size: 10Gi
