@@ -1,0 +1,17 @@
+{{- if .Values.sharedStorage.enabled }}
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.sharedStorage.pvcName }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    app.kubernetes.io/name: {{ include "airflow-mlops.name" . }}
+    app.kubernetes.io/instance: {{ .Release.Name }}
+spec:
+  accessModes:
+    - {{ .Values.sharedStorage.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.sharedStorage.size }}
+  storageClassName: {{ .Values.sharedStorage.storageClassName }}
+{{- end }}

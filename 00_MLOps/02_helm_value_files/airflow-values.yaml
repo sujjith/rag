@@ -96,16 +96,5 @@ workers:
     - name: shared-data
       mountPath: /shared
 
-# Create PVC via Helm (no separate kubectl apply needed)
-extraManifests:
-  - apiVersion: v1
-    kind: PersistentVolumeClaim
-    metadata:
-      name: airflow-shared-data
-    spec:
-      accessModes:
-        - ReadWriteMany
-      resources:
-        requests:
-          storage: 5Gi
-      storageClassName: local-path
+# NOTE: PVC 'airflow-shared-data' must be created separately before installing:
+#   kubectl apply -f 00_MLOps/04_usecases/usecase1_churn_prediction/k8s/airflow-shared-pvc.yaml
