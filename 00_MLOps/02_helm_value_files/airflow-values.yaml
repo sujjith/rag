@@ -56,3 +56,12 @@ scheduler:
     limits:
       memory: 1Gi
       cpu: 500m
+
+# Airflow 3.x uses apiServer instead of webserver for the UI
+apiServer:
+  service:
+    type: NodePort
+    ports:
+      - name: api-server
+        port: 8080
+        nodePort: 30800
