@@ -6,6 +6,7 @@ Triggered after data_ingestion_dag completes.
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from airflow.sensors.external_task import ExternalTaskSensor
 from datetime import datetime, timedelta
 import pandas as pd
@@ -173,4 +174,11 @@ with DAG(
         python_callable=mark_data_validated,
     )
     
-    download_task >> validate_task >> complete_task
+    # Trigger feature engineering DAG after validation passes
+    trigger_features = TriggerDagRunOperator(
+        task_id='trigger_feature_engineering',
+        trigger_dag_id='feature_engineering',
+        wait_for_completion=False,
+    )
+    
+    download_task >> validate_task >> complete_task >> trigger_features

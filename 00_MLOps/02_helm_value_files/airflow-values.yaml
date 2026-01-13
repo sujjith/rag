@@ -82,7 +82,7 @@ dags:
     depth: 1
     maxFailures: 3
     subPath: "00_MLOps/04_usecases/usecase1_churn_prediction/airflow/dags"
-    period: 60s
+    period: 10s
     # Credentials secret (we'll create this)
     credentialsSecret: git-credentials
 
