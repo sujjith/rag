@@ -5,6 +5,7 @@ Extracts customer data from PostgreSQL and uploads to MinIO object storage.
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
+from airflow.operators.trigger_dagrun import TriggerDagRunOperator
 from datetime import datetime, timedelta
 import pandas as pd
 import boto3
@@ -127,5 +128,12 @@ with DAG(
         python_callable=validate_upload,
     )
     
+    # Trigger data validation DAG after ingestion completes
+    trigger_validation = TriggerDagRunOperator(
+        task_id='trigger_validation_dag',
+        trigger_dag_id='data_validation',
+        wait_for_completion=False,
+    )
+    
     # Define task dependencies
-    extract_task >> upload_task >> validate_task
+    extract_task >> upload_task >> validate_task >> trigger_validation
