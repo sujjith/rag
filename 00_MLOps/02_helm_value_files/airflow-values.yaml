@@ -16,7 +16,7 @@ data:
 images:
   airflow:
     repository: airflow-custom
-    tag: "3.0.2"
+    tag: "3.0.3"
     pullPolicy: Never  # Use local image
 
 # Use MinIO for logs (in 'minio' namespace)
