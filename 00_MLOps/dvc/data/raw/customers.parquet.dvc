@@ -1,0 +1,5 @@
+outs:
+- md5: 2eeaa038033b8c2824d018d98c0fe88b
+  size: 7161
+  hash: md5
+  path: customers.parquet
