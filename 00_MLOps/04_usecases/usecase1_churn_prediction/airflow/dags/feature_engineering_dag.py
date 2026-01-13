@@ -97,7 +97,7 @@ entity_key_serialization_version: 2
     # Feature definitions
     features_py = '''
 from datetime import timedelta
-from feast import Entity, Feature, FeatureView, Field, FileSource
+from feast import Entity, FeatureView, Field, FileSource
 from feast.types import Float32, Int32, String
 
 # Entity - the primary key for features
@@ -187,7 +187,7 @@ def materialize_features(**context):
 
 
 with DAG(
-    'feature_engineering',
+    'feature_engineering_v2',
     default_args=default_args,
     description='Transform data into features and materialize to Feast',
     schedule='@daily',
