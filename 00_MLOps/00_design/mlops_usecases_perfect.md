@@ -15,6 +15,24 @@ Practical scenarios demonstrating how all tools in the MLOps platform work toget
 
 ### Step-by-Step Flow
 
+## Prefect Setup
+
+```bash
+# 1. Setup Prefect
+cd /home/sujith/github/rag/00_MLOps/04_usecases
+uv sync
+uv run prefect cloud login
+
+# 2. Start worker
+uv run prefect worker start --pool local-pool
+
+# 3. Run data pipeline (new terminal)
+uv run python -m uc_1_churn_prediction.flows.churn_pipeline
+
+# 4. Monitor in Prefect Cloud UI
+# https://app.prefect.cloud
+```
+
 #### 1. Data Ingestion (Prefect)
 
 **Implementation Location**: `00_MLOps/04_usecases/uc_1_churn_prediction/tasks/data_ingestion.py`
