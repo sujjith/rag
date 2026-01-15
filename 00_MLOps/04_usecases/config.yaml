@@ -1,0 +1,31 @@
+# MLOps Pipeline Configuration
+environment: development
+
+postgres:
+  host: localhost          # kubectl port-forward svc/postgresql 5432:5432 -n postgresql
+  port: 5432
+  database: customers
+  user: postgres
+  password: postgres123
+
+minio:
+  endpoint: http://localhost:9000    # kubectl port-forward svc/minio 9000:9000 -n minio
+  access_key: minioadmin
+  secret_key: minioadmin123
+  bucket: dvc-storage
+
+mlflow:
+  tracking_uri: http://localhost:5000    # kubectl port-forward svc/mlflow 5000:5000 -n mlflow
+
+kubeflow:
+  host: http://localhost:8080    # kubectl port-forward svc/ml-pipeline-ui 8080:80 -n kubeflow
+
+feast:
+  repo_path: ./feature_repo
+
+kserve:
+  namespace: models
+
+dvc:
+  remote_name: minio
+  remote_url: s3://dvc-storage

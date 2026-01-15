@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+.venv/
+venv/
+
+# uv
+.python-version
+
+# Data files (tracked by DVC)
+data/*.parquet
+data/*.csv
+!data/.gitkeep
+
+# DVC
+/data/*.dvc
+
+# Feast
+feature_repo/data/
+*.db
+
+# Great Expectations
+gx/uncommitted/
+
+# IDE
+.idea/
+.vscode/
+*.swp
+
+# Temp
+/tmp/
+*.tmp
